@@ -156,7 +156,7 @@ declare type verification = 'INCORRECT_CODE'|'Err_Server_Unreachable'|'Err_Multi
 
 declare type conetMiner = 'Err_Server_Unreachable'|'Err_Multiple_IP'
 
-declare type WorkerCommand = 'READY'|'getRegiestNodes'|'beforeunload'|'createAccount'|'testPasscode'|'showSRP'|'unlock_cCNTP'|
+declare type WorkerCommand = 'READY'|'getRegiestNodes'|'beforeunload'|'createAccount'|'testPasscode'|'showSRP'|'unlock_cCNTP'|'getWallet'
 	'encrypt_TestPasscode'|'encrypt_createPasscode'|'encrypt_lock'|'invitation'|'encrypt_deletePasscode'|'preBurnCCNTP'|
 	'storePreferences'|'newProfile'|'storeProfile'|'urlProxy'|'saveDomain'|'getDomain'|'setRegion'|'getGuardianRegion'|
 	'getFaucet'|'isAddress'|'syncAssetV1'|'sendAsset'|'getUSDCPrice'|'buyUSDC'|'getWorkerClientID'|'getAllOtherAssets'|
@@ -212,13 +212,8 @@ type regionType = {
 interface conet_tokens {
 	//	CONET Holesky
 	conet:CryptoAsset
-	CNTP: CryptoAsset
-	CNTPV1: CryptoAsset
+	// CNTP: CryptoAsset
 	cCNTP: CryptoAsset
-
-	dWBNB: CryptoAsset
-	dWETH: CryptoAsset
-	dUSDT: CryptoAsset
 
 	//	CONET Holesky Claimable
 	cUSDB: CryptoAsset
@@ -231,17 +226,17 @@ interface conet_tokens {
 	CGPN2s: CryptoAsset
 	//	blast mainchain
 
-	blastETH: CryptoAsset
-	usdb: CryptoAsset
+	// blastETH: CryptoAsset
+	// usdb: CryptoAsset
 
 	//	ETH
-	eth: CryptoAsset
-	usdt:CryptoAsset
+	// eth: CryptoAsset
+	// usdt:CryptoAsset
 
 	//	BSC
-	bnb: CryptoAsset
-	wbnb: CryptoAsset
-	wusdt: CryptoAsset
+	// bnb: CryptoAsset
+	// wbnb: CryptoAsset
+	// wusdt: CryptoAsset
 }
 
 interface profile extends keyPair {
@@ -308,7 +303,7 @@ interface fx168_Order {
 }
 
 type encrypt_keys_object = {
-    profiles?: profile[]
+    profiles: profile[]
 	isReady: boolean
 	ver: number
 	preferences?: any

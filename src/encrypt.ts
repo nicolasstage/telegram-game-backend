@@ -4,17 +4,13 @@
  * 				CONET Platform
  * 
  */
+declare const ethers
 
 const workerReadyChannel = 'conet-platform'
 const workerProcessChannel = 'workerLoader'
 const channelWrokerListenName = 'toMainWroker'
 const responseChannel = new BroadcastChannel('toServiceWroker')
-
-
 const channel = new BroadcastChannel(channelWrokerListenName)
-
-
-
 
 const backGroundPoolWorker: clientPoolWroker[] = []
 
@@ -26,7 +22,6 @@ const initEncryptWorker = async () => {
 	
     const baseUrl = self.name + 'workers/'
 	const channelLoading = new BroadcastChannel(workerProcessChannel)
-	const channelPlatform = new BroadcastChannel(workerReadyChannel)
     self.importScripts ( baseUrl + 'Buffer.js' )
 	channelLoading.postMessage(10)
 
@@ -44,6 +39,7 @@ const initEncryptWorker = async () => {
 
 	channelLoading.postMessage(90)
     channel.addEventListener('message', channelWorkerDoCommand )
+	await checkStorage()
 }
 
 
@@ -75,6 +71,9 @@ let getFaucetCount = 0
 
 const processCmd = async (cmd: worker_command) => {
     switch (cmd.cmd) {
+		case 'getWallet': {
+			return getWallet(cmd)
+		}
 
 		default: {
 			cmd.err = 'INVALID_COMMAND'
