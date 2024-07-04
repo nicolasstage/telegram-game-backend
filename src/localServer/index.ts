@@ -165,7 +165,7 @@ export class Daemon {
     }
 
     private initialize = () => {
-        const staticFolder = join ( this.appsPath, 'workers' )
+        const staticFolder = join ( this.appsPath)
         //const launcherFolder = join ( this.appsPath, '../launcher' )
 		//console.dir ({ staticFolder: staticFolder, launcherFolder: launcherFolder })
 
