@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import Colors from 'colors/safe'
 import { inspect } from 'node:util'
 import { v4 } from 'uuid'
-
+import { logger } from './logger'
 import Ip from "ip"
 
 
