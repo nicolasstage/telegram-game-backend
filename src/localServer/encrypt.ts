@@ -17,7 +17,7 @@ self.onhashchange = () => {
 };
 
 const initEncryptWorker = async () => {
-  const baseUrl = self.name + "workers/";
+  const baseUrl = self.name + "/workers/";
   const channelLoading = new BroadcastChannel(workerProcessChannel);
   self.importScripts(baseUrl + "Buffer.js");
   channelLoading.postMessage(10);
@@ -37,16 +37,13 @@ const initEncryptWorker = async () => {
   self.importScripts(
     "https://cdnjs.cloudflare.com/ajax/libs/jimp/0.22.12/jimp.min.js"
   );
-  channelLoading.postMessage(30);
-  self.importScripts(baseUrl + "util.js");
-  // self.importScripts ( 'https://cdnjs.cloudflare.com/ajax/libs/forge/1.3.1/forge.min.js' )
-  //self.importScripts ( baseUrl + 'Pouchdb.js' )
-  // self.importScripts (  baseUrl + 'PouchdbFind.js' )
-  self.importScripts(baseUrl + "main.js");
-
   self.importScripts(
     "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js"
   );
+
+  channelLoading.postMessage(30);
+  self.importScripts(baseUrl + "util.js");
+  self.importScripts(baseUrl + "main.js");
 
   channelLoading.postMessage(90);
   channel.addEventListener("message", channelWorkerDoCommand);
@@ -80,6 +77,10 @@ const processCmd = async (cmd: worker_command) => {
   switch (cmd.cmd) {
     case "getWallet": {
       return getWallet(cmd);
+    }
+
+    case "getWalletBalance": {
+      return scan_erc20_balance(cmd);
     }
 
     case "startMining": {

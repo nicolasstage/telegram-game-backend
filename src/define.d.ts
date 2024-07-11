@@ -244,6 +244,7 @@ declare type WorkerCommand =
   | "getRefereesList"
   | "getAllNodes"
   | "getAllProfiles"
+  | "getWalletBalance"
   | "updateProfile"
   | "addProfile"
   | "resetPasscode"
