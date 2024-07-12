@@ -48,6 +48,8 @@ const initEncryptWorker = async () => {
   channelLoading.postMessage(90);
   channel.addEventListener("message", channelWorkerDoCommand);
   await checkStorage();
+
+  // testFunction();
 };
 
 const returnUUIDChannel = (cmd: worker_command) => {
@@ -75,12 +77,12 @@ let getFaucetCount = 0;
 
 const processCmd = async (cmd: worker_command) => {
   switch (cmd.cmd) {
-    case "getWallet": {
-      return getWallet(cmd);
+    case "createOrGetWallet": {
+      return createOrGetWallet(cmd);
     }
 
     case "getWalletBalance": {
-      return scan_erc20_balance(cmd);
+      return getWalletBalance(cmd);
     }
 
     case "startMining": {

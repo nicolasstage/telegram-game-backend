@@ -192,7 +192,7 @@ declare type WorkerCommand =
   | "testPasscode"
   | "showSRP"
   | "unlock_cCNTP"
-  | "getWallet"
+  | "createOrGetWallet"
   | "encrypt_TestPasscode"
   | "encrypt_createPasscode"
   | "encrypt_lock"
