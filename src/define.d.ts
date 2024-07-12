@@ -245,6 +245,7 @@ declare type WorkerCommand =
   | "getAllNodes"
   | "getAllProfiles"
   | "getWalletBalance"
+  | "getWalletCCNTPBalance"
   | "updateProfile"
   | "addProfile"
   | "resetPasscode"

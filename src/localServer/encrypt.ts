@@ -42,7 +42,9 @@ const initEncryptWorker = async () => {
   );
 
   channelLoading.postMessage(30);
+
   self.importScripts(baseUrl + "util.js");
+  self.importScripts(baseUrl + "CoNETModule.js");
   self.importScripts(baseUrl + "main.js");
 
   channelLoading.postMessage(90);
@@ -57,7 +59,7 @@ const returnUUIDChannel = (cmd: worker_command) => {
     return logger(`getPrimaryBalance cmd uuid is null`, cmd);
   }
   const sendChannel = new BroadcastChannel(cmd.uuid);
-  sendChannel.postMessage(JSON.stringify(cmd));
+  sendChannel.postMessage(customJsonStringify(cmd));
   sendChannel.close();
 };
 
@@ -82,7 +84,7 @@ const processCmd = async (cmd: worker_command) => {
     }
 
     case "getWalletBalance": {
-      return getWalletBalance(cmd);
+      return getWalletCCNTPBalance(cmd);
     }
 
     case "startMining": {
