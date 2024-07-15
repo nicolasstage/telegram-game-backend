@@ -83,7 +83,7 @@ const processCmd = async (cmd: worker_command) => {
       return createOrGetWallet(cmd);
     }
 
-    case "getWalletBalance": {
+    case "getWalletCCNTPBalance": {
       return getWalletCCNTPBalance(cmd);
     }
 
