@@ -822,23 +822,36 @@ const _startMining = async (
  * @returns
  */
 const startMining = async (cmd: worker_command) => {
-  let _profile: profile = cmd.data[0];
-
-  if (!_profile) {
+  if (!CoNET_Data) {
     cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
     return returnUUIDChannel(cmd);
   }
 
-  if (CoNET_Data) {
-    const newBalance = await scan_erc20_balance(
-      CoNET_Data.profiles[0].keyID,
-      provideCONET,
-      cCNTP_new_Addr
-    );
-    CoNET_Data.profiles[0].tokens.cCNTP.balance = newBalance;
-    _profile = CoNET_Data.profiles[0];
-    storeSystemData();
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
   }
+
+  let _profile = CoNET_Data?.profiles?.find((p) => p.keyID === profileKeyID);
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+
+  const newBalance = await scan_erc20_balance(
+    _profile.keyID,
+    provideCONET,
+    cCNTP_new_Addr
+  );
+  CoNET_Data.profiles[0].tokens.cCNTP.balance = newBalance;
+  _profile = CoNET_Data.profiles[0];
+  storeSystemData();
 
   miningStatus = "MINING";
   return await _startMining(_profile, cmd);
@@ -889,12 +902,12 @@ const scan_erc20_balance = (
  */
 const testFunction = async () => {
   //   -------- createOrGetWallet --------
-  //   const cmd1: worker_command = {
-  //     cmd: "createOrGetWallet",
-  //     data: [],
-  //     uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
-  //   };
-  //   await createOrGetWallet(cmd1);
+  // const cmd1: worker_command = {
+  //   cmd: "createOrGetWallet",
+  //   data: [],
+  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
+  // };
+  // const profileKeyID = await createOrGetWallet(cmd1);
   //
   // -------- getWalletCCNTPBalance --------
   //   const cmd2: worker_command = {
@@ -905,10 +918,10 @@ const testFunction = async () => {
   //   await getWalletCCNTPBalance(cmd2);
   //
   //   -------- startMining --------
-  //   const cmd3: worker_command = {
-  //     cmd: "startMining",
-  //     data: [CoNET_Data?.profiles[0]],
-  //     uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
-  //   };
-  //   await startMining(cmd3);
+  // const cmd3: worker_command = {
+  //   cmd: "startMining",
+  //   data: [profileKeyID],
+  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
+  // };
+  // await startMining(cmd3);
 };
