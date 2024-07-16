@@ -872,7 +872,9 @@ const getWalletCCNTPBalance = async (cmd: worker_command) => {
     cCNTP_new_Addr
   );
 
-  cmd.data[0] = balance;
+  const treatedBalance = Number(balance) / 10 ** 18;
+
+  cmd.data[0] = treatedBalance.toFixed(6);
   returnUUIDChannel(cmd);
 };
 
