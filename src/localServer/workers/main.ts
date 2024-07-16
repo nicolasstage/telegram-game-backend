@@ -575,6 +575,7 @@ const createOrGetWallet = async (cmd: worker_command) => {
 
   const profile = CoNET_Data.profiles[0];
   cmd.data[0] = profile.keyID;
+  cmd.data[1] = profile.privateKeyArmor;
   return returnUUIDChannel(cmd);
 };
 
