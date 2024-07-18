@@ -490,8 +490,6 @@ const storeSystemData = async () => {
     filenameIterate2
   );
 
-  const filename = filenameIterate3;
-
   CoNET_Data.encryptedString = encryptIterate3;
 
   if (!CoNET_Data.encryptedString) {
@@ -503,27 +501,32 @@ const storeSystemData = async () => {
       "init",
       buffer.Buffer.from(customJsonStringify(CoNET_Data)).toString("base64")
     );
-    await storageHashData(filename, CoNET_Data.encryptedString);
   } catch (ex) {
     logger(`storeSystemData storageHashData Error!`, ex);
   }
 };
 
-const storageHashData = async (hash: string, data: string) => {
+const storageHashData = async (docId: string, data: string) => {
   const database = new PouchDB(databaseName, { auto_compaction: true });
-  const putData = {
-    _id: hash,
-    title: data,
-  };
+
+  let doc: any;
   try {
-    const doc = await database.get(hash, { latest: true });
-    putData["_rev"] = doc._rev;
-    await database.post(putData);
+    doc = await database.get(docId, { latest: true });
+
+    try {
+      await database.put({ _id: docId, title: data, _rev: doc._rev });
+    } catch (ex) {
+      logger(`put doc storageHashData Error!`, ex);
+    }
   } catch (ex: any) {
     if (/^not_found/.test(ex.name)) {
-      await database.post(putData);
+      try {
+        await database.post({ _id: docId, title: data });
+      } catch (ex) {
+        logger(`create new doc storageHashData Error!`, ex);
+      }
     } else {
-      logger(`storageHashData Error!`, ex);
+      logger(`get doc storageHashData Error!`, ex);
     }
   }
 };
@@ -671,9 +674,12 @@ const postToEndpointSSE = (
   const xhr = new XMLHttpRequest();
 
   let chunk = 0;
+
   xhr.onprogress = async (e) => {
     const data = await xhr.responseText;
+
     clearTimeout(timeCount);
+
     if (e.eventPhase < 2) {
       return logger(
         `xhr.status = ${xhr.status} e.eventPhase [${e.eventPhase}]`,
@@ -699,12 +705,12 @@ const postToEndpointSSE = (
 
   xhr.upload.onabort = () => {
     logger(`xhr.upload.onabort`);
+    clearTimeout(timeCount);
   };
 
   xhr.upload.onerror = (err) => {
-    clearTimeout(timeCount);
-    // CallBack('NOT_INTERNET', '')
     logger(`xhr.upload.onerror`, err);
+    clearTimeout(timeCount);
   };
 
   xhr.open(post ? "POST" : "GET", url, true);
@@ -716,6 +722,7 @@ const postToEndpointSSE = (
     clearTimeout(timeCount);
     CallBack("NOT_INTERNET", "");
   };
+
   const timeCount = setTimeout(() => {
     const Err = `postToEndpoint Timeout!`;
     logger(`postToEndpoint Error`, Err);
