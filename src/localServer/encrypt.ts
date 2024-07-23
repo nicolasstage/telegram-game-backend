@@ -87,6 +87,10 @@ const processCmd = async (cmd: worker_command) => {
       return getWalletCCNTPBalance(cmd);
     }
 
+    case "getFirstRouletteResult": {
+      return getFirstRouletteResult(cmd);
+    }
+
     case "startMining": {
       return startMining(cmd);
     }

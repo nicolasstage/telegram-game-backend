@@ -906,6 +906,14 @@ const scan_erc20_balance = (
     }
   });
 
+const getFirstRouletteResult = async (cmd: worker_command) => {
+  // get random number from 0 to 3
+  const random = Math.floor(Math.random() * 4);
+
+  cmd.data[0] = random;
+  returnUUIDChannel(cmd);
+};
+
 /**
  * Function used only for testing. It's started by the initEncryptWorker in encrypt.ts.
  * DO NOT USE IN PRODUCTION.
@@ -934,4 +942,11 @@ const testFunction = async () => {
   //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
   // };
   // await startMining(cmd3);
+  // -------- getFirstRouletteResult --------
+  // const cmd4: worker_command = {
+  //   cmd: "getFirstRouletteResult",
+  //   data: [],
+  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
+  // };
+  // await getFirstRouletteResult(cmd4);
 };
