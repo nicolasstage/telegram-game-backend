@@ -189,7 +189,8 @@ declare type WorkerCommand =
   | "startMining"
   | "stopMining"
   | "getWalletCCNTPBalance"
-  | "getFirstRouletteResult";
+  | "getFirstRouletteResult"
+  | "getSecondRouletteResult";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"

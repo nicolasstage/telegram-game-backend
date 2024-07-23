@@ -914,6 +914,14 @@ const getFirstRouletteResult = async (cmd: worker_command) => {
   returnUUIDChannel(cmd);
 };
 
+const getSecondRouletteResult = async (cmd: worker_command) => {
+  // get random number from 0 to 1
+  const random = Math.floor(Math.random() * 1);
+
+  cmd.data[0] = random;
+  returnUUIDChannel(cmd);
+};
+
 /**
  * Function used only for testing. It's started by the initEncryptWorker in encrypt.ts.
  * DO NOT USE IN PRODUCTION.
