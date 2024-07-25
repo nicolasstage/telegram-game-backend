@@ -27,6 +27,8 @@ const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
 let CoNET_Data: encrypt_keys_object | null = null;
 let passObj: passInit | null = null;
 let preferences: any = null;
+let epoch = 0;
+let needUpgradeVer = 0;
 
 const blast_CNTPAbi = [
   {
@@ -544,6 +546,144 @@ const checkStorage = async () => {
   }
 };
 
+const splitTextLimitLength: (test: string, limitLength: number) => string[] = (
+  test,
+  limitLength
+) => {
+  const ret: string[] = [];
+  let start = 0;
+  let _limitLength = test.length > limitLength ? limitLength : test.length / 2;
+  const split = () => {
+    const price = test.substring(start, _limitLength + start);
+    if (price.length) {
+      ret.push(price);
+
+      start += _limitLength;
+    }
+    if (start < test.length) {
+      return split();
+    }
+    return ret;
+  };
+  return split();
+};
+
+const encryptPasswordIssue = (ver: number, passcode: string, part: number) => {
+  const password = ethers.id(
+    "0x" +
+      (
+        BigInt(ethers.id(ver.toString())) + BigInt(ethers.id(passcode))
+      ).toString(16)
+  );
+  let _pass = ethers.id(password);
+  for (let i = 0; i < part; i++) {
+    _pass = ethers.id(_pass);
+  }
+  return _pass.substring(2);
+};
+
+const createFragmentFileName = (
+  ver: number,
+  password: string,
+  part: number
+) => {
+  return ethers.id(
+    ethers.id(
+      ethers.id(
+        ethers.id(ver.toString()) +
+          ethers.id(password) +
+          ethers.id(part.toString())
+      )
+    )
+  );
+};
+
+const _storagePieceToLocal = (
+  mnemonicPhrasePassword: string,
+  fragment: string,
+  index: number,
+  totalFragment: number,
+  targetFileLength: number,
+  ver: number,
+  privateArmor: string,
+  keyID: string
+) =>
+  new Promise(async (resolve) => {
+    const partEncryptPassword = encryptPasswordIssue(
+      ver,
+      mnemonicPhrasePassword,
+      index
+    );
+    const localData = {
+      data: fragment,
+      totalFragment: totalFragment,
+      index,
+    };
+    const piece = {
+      localEncryptedText: await CoNETModule.aesGcmEncrypt(
+        JSON.stringify(localData),
+        partEncryptPassword
+      ),
+      fileName: createFragmentFileName(ver, mnemonicPhrasePassword, index),
+    };
+    storageHashData(piece.fileName, piece.localEncryptedText).then(() => {
+      resolve(true);
+    });
+  });
+
+const storagePieceToLocal = (newVer = "-1") => {
+  return new Promise((resolve) => {
+    if (!CoNET_Data || !CoNET_Data.profiles) {
+      logger(`storagePieceToLocal empty CoNET_Data Error!`);
+      return resolve(false);
+    }
+    const profile = CoNET_Data.profiles[0];
+    const fileLength = Math.round(1024 * (10 + Math.random() * 20));
+
+    let firstProfilePgpKey = { publicKeyArmor: "", privateKeyArmor: "" };
+    if (CoNET_Data.profiles[0].pgpKey) {
+      firstProfilePgpKey = {
+        publicKeyArmor: CoNET_Data.profiles[0].pgpKey.publicKeyArmor,
+        privateKeyArmor: CoNET_Data.profiles[0].pgpKey.privateKeyArmor,
+      };
+      CoNET_Data.profiles[0].pgpKey = firstProfilePgpKey;
+    }
+
+    const profilesClearText = JSON.stringify(CoNET_Data.profiles);
+    const chearTextFragments = splitTextLimitLength(
+      profilesClearText,
+      fileLength
+    );
+    const passward = ethers.id(ethers.id(CoNET_Data.mnemonicPhrase));
+    const privateKeyArmor = profile.privateKeyArmor || "";
+    const ver = (CoNET_Data.ver =
+      newVer < "0" ? CoNET_Data.ver + 1 : parseInt(newVer));
+
+    let index = 0;
+
+    return async.mapLimit(
+      chearTextFragments,
+      1,
+      async (n: any, next: any) => {
+        await _storagePieceToLocal(
+          passward,
+          n,
+          index++,
+          chearTextFragments.length,
+          fileLength,
+          ver,
+          privateKeyArmor,
+          profile.keyID
+        );
+      },
+      () => {
+        logger(`async.series finished`);
+        resolve(true);
+      }
+    );
+  });
+};
+
 /**
  * Create a new wallet if no wallet exists yet in the local storage or get the wallet from the local storage if it exists.
  *
@@ -580,6 +720,60 @@ const createOrGetWallet = async (cmd: worker_command) => {
   cmd.data[0] = profile.keyID;
   cmd.data[1] = profile.privateKeyArmor;
   return returnUUIDChannel(cmd);
+};
+
+const importWallet = async (cmd: worker_command) => {
+  const privateKey = cmd.data[0];
+
+  cmd.data = [];
+
+  if (!CoNET_Data || !CoNET_Data?.profiles) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  let wallet;
+  try {
+    wallet = new ethers.Wallet(privateKey);
+  } catch (ex) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profiles = CoNET_Data.profiles;
+  const checkIndex = profiles.findIndex(
+    (n) => n.keyID.toLowerCase() === wallet.address.toLowerCase()
+  );
+  if (checkIndex > -1) {
+    cmd.data[0] = CoNET_Data.profiles;
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  const key = await createGPGKey("", "", "");
+
+  const profile: profile = {
+    isPrimary: false,
+    keyID: wallet.address,
+    privateKeyArmor: privateKey,
+    hdPath: "",
+    index: -1,
+    isNode: false,
+    pgpKey: {
+      privateKeyArmor: key.privateKey,
+      publicKeyArmor: key.publicKey,
+    },
+    referrer: null,
+    tokens: initProfileTokens(),
+  };
+
+  CoNET_Data.profiles = [profile];
+  cmd.data[0] = CoNET_Data.profiles;
+  returnUUIDChannel(cmd);
+
+  await storagePieceToLocal();
+  await storeSystemData();
+  needUpgradeVer = epoch + 25;
 };
 
 const createKeyHDWallets = () => {
@@ -957,4 +1151,13 @@ const testFunction = async () => {
   //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
   // };
   // await getFirstRouletteResult(cmd4);
+  // -------- importWallet --------
+  // const cmd5: worker_command = {
+  //   cmd: "importWallet",
+  //   data: [
+  //     "0x822cc521850cb0a3fa0cb38961c3c4eec142aecc5b40b255a4021e8dbeea754a",
+  //   ],
+  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
+  // };
+  // await importWallet(cmd5);
 };

@@ -73,3 +73,19 @@ const logger = (...argv: any) => {
 
   return console.log(dateStrang, "color: #dcde56", ...argv);
 };
+
+const createGPGKey = async (passwd: string, name: string, email: string) => {
+  const userId = {
+    name: name,
+    email: email,
+  };
+  const option = {
+    type: "ecc",
+    passphrase: passwd,
+    userIDs: [userId],
+    curve: "curve25519",
+    format: "armored",
+  };
+
+  return await openpgp.generateKey(option);
+};

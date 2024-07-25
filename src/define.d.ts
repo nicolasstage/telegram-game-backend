@@ -190,7 +190,8 @@ declare type WorkerCommand =
   | "stopMining"
   | "getWalletCCNTPBalance"
   | "getFirstRouletteResult"
-  | "getSecondRouletteResult";
+  | "getSecondRouletteResult"
+  | "importWallet";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"

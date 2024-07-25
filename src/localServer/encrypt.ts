@@ -40,6 +40,9 @@ const initEncryptWorker = async () => {
   self.importScripts(
     "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js"
   );
+  self.importScripts(
+    "https://cdn.jsdelivr.net/npm/openpgp@5.11.2/dist/openpgp.min.js"
+  );
 
   channelLoading.postMessage(30);
 
@@ -81,6 +84,10 @@ const processCmd = async (cmd: worker_command) => {
   switch (cmd.cmd) {
     case "createOrGetWallet": {
       return createOrGetWallet(cmd);
+    }
+
+    case "importWallet": {
+      return importWallet(cmd);
     }
 
     case "getWalletCCNTPBalance": {
