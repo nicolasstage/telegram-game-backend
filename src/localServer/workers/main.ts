@@ -21,14 +21,92 @@ let cCNTPcurrentTotal = 0;
 let miningProfile: profile | null = null;
 let miningStatus: "STOP" | "RESTART" | "MINING" = "STOP";
 const api_endpoint = `https://api.conet.network/api/`;
-let authorization_key = "";
+const apiv2_endpoint = `https://apiv2.conet.network/api/`;
+const ipfsEndpoint = `https://ipfs.conet.network/api/`;
 const conet_rpc = "https://rpc.conet.network";
+let authorization_key = "";
 const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
 let CoNET_Data: encrypt_keys_object | null = null;
 let passObj: passInit | null = null;
 let preferences: any = null;
 let epoch = 0;
 let needUpgradeVer = 0;
+let listeningBlock = false;
+let checkcheckUpdateLock = false;
+let getFaucetRoop = 0;
+const blast_mainnet_CNTP = "0x0f43685B2cB08b9FB8Ca1D981fF078C22Fec84c5";
+
+const conet_storageAbi = [
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "index",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "string",
+        name: "data",
+        type: "string",
+      },
+    ],
+    name: "FragmentsStorage",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "count",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "data",
+        type: "string",
+      },
+    ],
+    name: "versionUp",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "ver",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
 
 const blast_CNTPAbi = [
   {
@@ -458,6 +536,661 @@ const blast_CNTPAbi = [
   },
 ];
 
+const listenProfileVer = async () => {
+  listeningBlock = true;
+  provideCONET.on("block", async (block) => {
+    epoch = block;
+
+    const profiles = CoNET_Data?.profiles;
+    if (!profiles) {
+      return;
+    }
+
+    await getAllProfileAssetsBalance();
+
+    const balance = (
+      parseFloat(profiles[0]?.tokens?.cCNTP?.balance) / Math.pow(10, 18)
+    ).toFixed(6);
+
+    const cmd: channelWroker = {
+      cmd: "balanceStatus",
+      data: [balance],
+    };
+
+    sendState("toFrontEnd", cmd);
+
+    if (needUpgradeVer === epoch && profiles) {
+      const [nonce, _ver] = await checkProfileVersion(profiles[0].keyID);
+      await updateProfilesToRemote(_ver, CoNET_Data, profiles);
+    }
+  });
+
+  epoch = await provideCONET.getBlockNumber();
+};
+
+const updateFragmentsToIPFS = (
+  encryptData: string,
+  hash: string,
+  keyID: string,
+  privateKeyArmor: string
+) =>
+  new Promise(async (resolve) => {
+    const url = `${ipfsEndpoint}storageFragment`;
+
+    const message = JSON.stringify({
+      walletAddress: keyID,
+      data: encryptData,
+      hash,
+    });
+    const messageHash = ethers.id(message);
+
+    const signMessage = CoNETModule.EthCrypto.sign(
+      privateKeyArmor,
+      messageHash
+    );
+
+    const sendData = {
+      message,
+      signMessage,
+    };
+
+    try {
+      await postToEndpoint(url, true, sendData);
+    } catch (ex) {
+      return resolve(false);
+    }
+    return resolve(true);
+  });
+
+const storagePieceToIPFS = (
+  mnemonicPhrasePassword: string,
+  fragment: string,
+  index: number,
+  totalFragment: number,
+  targetFileLength: number,
+  ver: number,
+  privateArmor: string,
+  keyID: string
+) =>
+  new Promise(async (resolve) => {
+    const fileName = createFragmentFileName(ver, mnemonicPhrasePassword, index);
+
+    const text = await getFragmentsFromPublic(fileName);
+    if (text) {
+      return resolve(true);
+    }
+
+    const _dummylength =
+      targetFileLength - fragment.length > 1024 * 5
+        ? targetFileLength - totalFragment
+        : 0;
+    const dummylength =
+      totalFragment === 2 && _dummylength
+        ? Math.round((targetFileLength - fragment.length) * Math.random())
+        : 0;
+    const dummyData = buffer.Buffer.allocUnsafeSlow(dummylength);
+    const partEncryptPassword = encryptPasswordIssue(
+      ver,
+      mnemonicPhrasePassword,
+      index
+    );
+    const localData = {
+      data: fragment,
+      totalFragment: totalFragment,
+      index,
+    };
+    const IPFSData = {
+      data: fragment,
+      totalFragment: totalFragment,
+      index,
+      dummyData: dummyData,
+    };
+
+    const piece: fragmentsObj = {
+      localEncryptedText: await CoNETModule.aesGcmEncrypt(
+        JSON.stringify(localData),
+        partEncryptPassword
+      ),
+      remoteEncryptedText: await CoNETModule.aesGcmEncrypt(
+        JSON.stringify(IPFSData),
+        partEncryptPassword
+      ),
+      fileName,
+    };
+
+    const result = await updateFragmentsToIPFS(
+      piece.remoteEncryptedText,
+      piece.fileName,
+      keyID,
+      privateArmor
+    );
+    resolve(result);
+  });
+
+const updateProfilesVersionToIPFS: () => Promise<boolean> = () =>
+  new Promise(async (resolve) => {
+    if (!CoNET_Data?.profiles || !passObj) {
+      logger(
+        `updateProfilesVersion !CoNET_Data[${!CoNET_Data}] || !passObj[${!passObj}] === true Error! Stop process.`
+      );
+      return resolve(false);
+    }
+
+    const profile = CoNET_Data.profiles[0];
+    const privateKeyArmor = profile.privateKeyArmor || "";
+
+    if (!profile || !privateKeyArmor) {
+      logger(`updateProfilesVersion Error! profile empty Error! `);
+      return resolve(false);
+    }
+    const constBalance = profile.tokens.conet.balance;
+
+    let chainVer;
+
+    try {
+      [, chainVer] = await checkProfileVersion(profile.keyID);
+      const health = await getCONET_api_health();
+      if (!health) {
+        logger(`CONET api server hasn't health`);
+        return resolve(false);
+      }
+    } catch (ex: any) {
+      logger(
+        `updateProfilesVersion checkProfileVersion or getCONET_api_health had Error!`,
+        ex.message
+      );
+      return resolve(false);
+    }
+
+    const passward = ethers.id(ethers.id(CoNET_Data.mnemonicPhrase));
+    const profilesClearText = JSON.stringify(CoNET_Data.profiles);
+    const fileLength = Math.round(1024 * (10 + Math.random() * 20));
+    const chearTextFragments = splitTextLimitLength(
+      profilesClearText,
+      fileLength
+    );
+    const series: any[] = [];
+
+    sendState("beforeunload", true);
+    chearTextFragments.forEach((n, index) => {
+      series.push(
+        storagePieceToIPFS(
+          passward,
+          n,
+          index,
+          chearTextFragments.length,
+          fileLength,
+          chainVer,
+          privateKeyArmor,
+          profile.keyID
+        )
+      );
+    });
+
+    try {
+      await Promise.all([...series]);
+
+      const cloud = await checkIPFSFragmenReadyOrNot(chainVer, CoNET_Data);
+      if (!cloud) {
+        logger(`updateProfilesVersionToIPFS has failed!`);
+        return resolve(false);
+      }
+    } catch (ex) {
+      sendState("beforeunload", false);
+      logger(`updateProfilesVersion Error!`);
+      return resolve(false);
+    }
+
+    resolve(true);
+  });
+
+const getCONET_api_health = async () => {
+  const url = `${apiv2_endpoint}health`;
+  const result: any = await postToEndpoint(url, false, null);
+  return result?.health;
+};
+
+const getFragmentsFromPublic: (hash: string) => Promise<string> = (hash) => {
+  const fileUrl = ipfsEndpoint + `getFragment/${hash}`;
+  return new Promise((resolve) => {
+    fetchWithTimeout(fileUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Connection: "close",
+      },
+      cache: "no-store",
+      referrerPolicy: "no-referrer",
+    })
+      .then((res) => {
+        if (res.status !== 200) {
+          logger(`getFragmentsFromPublic can't get hash ${hash} Error!`);
+          return "";
+        }
+        return res.text();
+      })
+      .then(async (text) => {
+        return resolve(text);
+      });
+  });
+};
+
+const checkIPFSFragmenReadyOrNot: (
+  ver: number,
+  CoNET_data: encrypt_keys_object
+) => Promise<boolean> = (ver: number, CoNET_data: encrypt_keys_object) =>
+  new Promise(async (resolve) => {
+    let _chainVer = ver;
+
+    const passward = ethers.id(ethers.id(CoNET_data.mnemonicPhrase));
+    const partEncryptPassword = encryptPasswordIssue(_chainVer, passward, 0);
+    const firstFragmentName = createFragmentFileName(_chainVer, passward, 0);
+    if (!CoNET_data?.fragmentClass) {
+      CoNET_data.fragmentClass = {
+        mainFragmentName: firstFragmentName,
+        failures: 0,
+      };
+    } else {
+      CoNET_data.fragmentClass.mainFragmentName = firstFragmentName;
+    }
+
+    const firstFragmentEncrypted = await getFragmentsFromPublic(
+      firstFragmentName
+    );
+    if (!firstFragmentEncrypted) {
+      return resolve(false);
+    }
+
+    let firstFragmentObj;
+
+    try {
+      const firstFragmentdecrypted = await CoNETModule.aesGcmDecrypt(
+        firstFragmentEncrypted,
+        partEncryptPassword
+      );
+      firstFragmentObj = JSON.parse(firstFragmentdecrypted);
+    } catch (ex) {
+      return resolve(false);
+    }
+
+    const totalFragment: number[] = [];
+    for (let i = 0; i < firstFragmentObj.totalFragment; i++) {
+      totalFragment.push(i);
+    }
+
+    let clearData: string = firstFragmentObj.data;
+    const series: any[] = [];
+    let success = false;
+    await async.mapLimit(totalFragment, 3, async (n, next) => {
+      const cleartext = await getNextFragmentIPFS(_chainVer, passward, n);
+      if (cleartext) {
+        success = true;
+      }
+    });
+
+    return resolve(success);
+  });
+
+const getNextFragmentIPFS = async (ver: number, passObjPassword: string, i) => {
+  const nextEncryptPassword = encryptPasswordIssue(ver, passObjPassword, i);
+  const nextFragmentHash = createFragmentFileName(ver, passObjPassword, i);
+  const nextFragmentText = await getFragmentsFromPublic(nextFragmentHash);
+  logger(
+    `getNextFragmentIPFS [${nextFragmentHash}] length = ${nextFragmentText.length}`
+  );
+  if (!nextFragmentText) {
+    logger(
+      `getNextFragmentIPFS Fetch [${nextFragmentHash}] got remote null Error!`
+    );
+    return "";
+  }
+  try {
+    const decryptedText = await CoNETModule.aesGcmDecrypt(
+      nextFragmentText,
+      nextEncryptPassword
+    );
+    const decryptedFragment = JSON.parse(decryptedText);
+    return decryptedFragment.data;
+  } catch (ex) {
+    logger(
+      `getNextFragmentIPFS aesGcmDecrypt [${nextFragmentText}] error!`,
+      ex
+    );
+    return "";
+  }
+};
+
+const updateChainVersion: (profile: profile) => Promise<string> = async (
+  profile: profile
+) => {
+  const wallet = new ethers.Wallet(profile.privateKeyArmor, provideCONET);
+  const conet_storage = new ethers.Contract(
+    profile_ver_addr,
+    conet_storageAbi,
+    wallet
+  );
+  try {
+    const tx = await conet_storage.versionUp("0x0");
+    await tx.wait();
+    const ver = await conet_storage.count(profile.keyID);
+    return ver.toString();
+  } catch (ex) {
+    logger(`updateChainVersion error! try again`, ex);
+    return "-1";
+  }
+};
+
+const updateProfilesToRemote = (_ver, CoNET_Data, profiles) =>
+  new Promise(async (resolve) => {
+    const result = await updateProfilesVersionToIPFS();
+    if (!result) {
+      return resolve(false);
+    }
+
+    const result1 = await checkIPFSFragmenReadyOrNot(_ver, CoNET_Data);
+    if (!result1) {
+      return resolve(false);
+    }
+
+    const ver = await updateChainVersion(profiles[0]);
+    if (ver < "0") {
+      return resolve(false);
+    }
+
+    await storagePieceToLocal(ver);
+    await storeSystemData();
+
+    checkcheckUpdateLock = false;
+    return resolve(true);
+  });
+
+const checkProfileVersion = async (wallet: string) => {
+  const conet_storage = new ethers.Contract(
+    profile_ver_addr,
+    conet_storageAbi,
+    provideCONET
+  );
+  const [count, nonce] = await Promise.all([
+    conet_storage.count(wallet),
+    provideCONET.getTransactionCount(wallet),
+  ]);
+
+  return [parseInt(count.toString()), parseInt(nonce.toString())];
+};
+
+const checkUpdateAccount = () =>
+  new Promise(async (resolve) => {
+    if (!CoNET_Data || !CoNET_Data?.profiles) {
+      logger(`checkUpdateAccount CoNET_Data?.profiles hasn't ready!`);
+      return resolve(false);
+    }
+
+    const profiles = CoNET_Data.profiles;
+
+    if (checkcheckUpdateLock) {
+      return resolve(false);
+    }
+
+    checkcheckUpdateLock = true;
+
+    const [nonce, _ver] = await checkProfileVersion(profiles[0].keyID);
+
+    CoNET_Data.nonce = nonce;
+
+    if (_ver === CoNET_Data.ver) {
+      return resolve(true);
+    }
+
+    //	Local version bigger than remote
+    if (_ver < CoNET_Data.ver) {
+      const result = await updateProfilesToRemote(_ver, CoNET_Data, profiles);
+      return resolve(result);
+    }
+
+    await getDetermineVersionProfile(_ver, CoNET_Data);
+
+    checkcheckUpdateLock = false;
+    return resolve(true);
+  });
+
+const getDetermineVersionProfile = (ver: number, CoNET_Data) =>
+  new Promise(async (resolve) => {
+    let _chainVer = ver;
+
+    const passward = ethers.id(ethers.id(CoNET_Data.mnemonicPhrase));
+    const partEncryptPassword = encryptPasswordIssue(_chainVer, passward, 0);
+    const firstFragmentName = createFragmentFileName(_chainVer, passward, 0);
+    if (!CoNET_Data.fragmentClass) {
+      CoNET_Data.fragmentClass = {
+        mainFragmentName: firstFragmentName,
+      };
+    }
+    CoNET_Data.fragmentClass.mainFragmentName = firstFragmentName;
+
+    const firstFragmentEncrypted = await getFragmentsFromPublic(
+      firstFragmentName
+    );
+
+    if (!firstFragmentEncrypted) {
+      //	try to get Previous bersion
+      if (ver > 2) {
+        return resolve(await getDetermineVersionProfile(ver - 1, CoNET_Data));
+      }
+      return resolve(false);
+    }
+
+    logger(
+      `checkUpdateAccount fetch ${_chainVer} first Fragment [${firstFragmentName}] with passward [${partEncryptPassword}]`
+    );
+
+    let firstFragmentObj;
+
+    try {
+      const firstFragmentdecrypted = await CoNETModule.aesGcmDecrypt(
+        firstFragmentEncrypted,
+        partEncryptPassword
+      );
+      firstFragmentObj = JSON.parse(firstFragmentdecrypted);
+    } catch (ex) {
+      return resolve(false);
+    }
+
+    const totalFragment = firstFragmentObj.totalFragment;
+    let clearData: string = firstFragmentObj.data;
+    const series: any[] = [];
+
+    for (let i = 1; i < totalFragment; i++) {
+      const stage = (next) => {
+        getNextFragmentIPFS(_chainVer, passward, i).then((text) => {
+          if (!text) {
+            return next(`getNextFragment [${i}] return NULL Error`);
+          }
+          clearData += text;
+          return next(null);
+        });
+      };
+      series.push(stage);
+    }
+
+    return async
+      .series(series)
+      .then(async () => {
+        let profile;
+
+        profile = JSON.parse(clearData);
+
+        if (CoNET_Data) {
+          CoNET_Data.profiles = profile;
+          CoNET_Data.ver = _chainVer;
+          CoNET_Data.fragmentClass.failures = 0;
+        }
+
+        await storagePieceToLocal();
+
+        await storeSystemData();
+
+        const cmd: channelWroker = {
+          cmd: "profileVer",
+          data: [_chainVer],
+        };
+        sendState("toFrontEnd", cmd);
+        return resolve(true);
+      })
+      .catch((ex) => {
+        return resolve(false);
+      });
+  });
+
+const getAllProfileAssetsBalance = () =>
+  new Promise(async (resolve) => {
+    if (!CoNET_Data?.profiles) {
+      logger(`getAllProfileAssetsBalance Error! CoNET_Data.profiles empty!`);
+      return resolve(false);
+    }
+
+    const profiles = CoNET_Data.profiles;
+
+    const runningList: any = [];
+
+    for (let profile of CoNET_Data.profiles) {
+      runningList.push(getProfileAssets_CONET_Balance(profile));
+    }
+
+    await Promise.all(runningList);
+    const constBalance = profiles[0].tokens.conet.balance;
+
+    if (constBalance > "0.0001") {
+      await checkUpdateAccount();
+    } else {
+      const health = await getCONET_api_health();
+
+      if (!health) {
+        return logger(`getAllProfileAssetsBalance getCONET_api_health Err`);
+      }
+
+      await getFaucet(profiles[0].keyID);
+    }
+
+    return resolve(true);
+  });
+
+const getFaucet = async (keyID: string) =>
+  new Promise(async (resolve) => {
+    if (++getFaucetRoop > 6) {
+      getFaucetRoop = 0;
+      logger(`getFaucet Roop > 6 STOP process!`);
+      return resolve(null);
+    }
+
+    const url = `${apiv2_endpoint}conet-faucet`;
+    let result;
+    try {
+      result = await postToEndpoint(url, true, { walletAddr: keyID });
+    } catch (ex) {
+      logger(`getFaucet postToEndpoint [${url}] error! `, ex);
+      return resolve(null);
+    }
+
+    getFaucetRoop = 0;
+    const txHash = result?.tx;
+
+    if (txHash) {
+      return resolve(true);
+    }
+    return resolve(null);
+  });
+
+const checkTokenStructure = (token: any) => {
+  if (!token?.cCNTP) {
+    token.cCNTP = {
+      balance: "0",
+      history: [],
+      network: "CONET Holesky",
+      decimal: 18,
+      contract: cCNTP_new_Addr,
+      name: "cCNTP",
+    };
+  } else {
+    token.cCNTP.name = "cCNTP";
+  }
+
+  if (!token?.CNTP) {
+    token.CNTP = {
+      balance: "0",
+      history: [],
+      network: "Blast Mainnet",
+      decimal: 18,
+      contract: blast_mainnet_CNTP,
+      name: "CNTP",
+    };
+  } else {
+    token.CNTP.name = "CNTP";
+  }
+
+  if (!token?.conet) {
+    token.conet = {
+      balance: "0",
+      history: [],
+      network: "CONET Holesky",
+      decimal: 18,
+      contract: "",
+      name: "conet",
+    };
+  } else {
+    token.conet.name = "conet";
+  }
+};
+
+const getProfileAssets_CONET_Balance = async (profile: profile) => {
+  const key = profile.keyID;
+
+  if (key) {
+    const current = profile.tokens;
+    checkTokenStructure(current);
+
+    const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
+    const [balanceCCNTP, conet_Holesky] = await Promise.all([
+      scanCCNTP(key, provideCONET),
+      scanCONETHolesky(key, provideCONET),
+    ]);
+
+    current.cCNTP.balance = balanceCCNTP;
+    parseFloat(ethers.formatEther(balanceCCNTP)).toFixed(6);
+
+    current.conet.balance =
+      conet_Holesky === BigInt(0)
+        ? "0"
+        : typeof conet_Holesky !== "boolean"
+        ? parseFloat(ethers.formatEther(conet_Holesky)).toFixed(6)
+        : "";
+  }
+
+  return true;
+};
+
+const scan_natureBalance = (
+  provide: any,
+  walletAddr: string,
+  provideUrl = ""
+) =>
+  new Promise(async (resolve) => {
+    try {
+      const result = await provide.getBalance(walletAddr);
+      return resolve(result);
+    } catch (ex) {
+      logger(`scan_natureBalance Error!`, ex);
+      return resolve(false);
+    }
+  });
+
+const scanCONETHolesky = async (walletAddr: string, privideCONET: any) => {
+  return await scan_natureBalance(privideCONET, walletAddr);
+};
+
+const scanCCNTP = async (walletAddr: string, privide: any) => {
+  return await scan_erc20_balance(walletAddr, privide, cCNTP_new_Addr);
+};
+
 const storeSystemData = async () => {
   if (!CoNET_Data) {
     return;
@@ -851,7 +1584,7 @@ const sendState = (state: listenState, value: any) => {
   const sendChannel = new BroadcastChannel(state);
   let data = "";
   try {
-    data = JSON.stringify(value);
+    data = customJsonStringify(value);
   } catch (ex) {
     logger(`sendState JSON.stringify(value) Error`);
   }

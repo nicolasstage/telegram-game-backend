@@ -1,3 +1,5 @@
+const XMLHttpRequestTimeout = 30 * 1000;
+
 const CoNETModule: CoNET_Module = {
   EthCrypto: null,
   Web3Providers: null,
@@ -88,4 +90,66 @@ const createGPGKey = async (passwd: string, name: string, email: string) => {
   };
 
   return await openpgp.generateKey(option);
+};
+
+const postToEndpoint = (url: string, post: boolean, jsonData) => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = () => {
+      clearTimeout(timeCount);
+      //const status = parseInt(xhr.responseText.split (' ')[1])
+
+      if (xhr.status === 200) {
+        // parse JSON
+
+        if (!xhr.responseText.length) {
+          return resolve("");
+        }
+        let ret;
+        try {
+          ret = JSON.parse(xhr.responseText);
+        } catch (ex) {
+          if (post) {
+            return resolve("");
+          }
+          return resolve(xhr.responseText);
+        }
+        return resolve(ret);
+      }
+
+      logger(
+        `postToEndpoint [${url}] xhr.status [${
+          xhr.status === 200
+        }] !== 200 Error`
+      );
+      return resolve(false);
+    };
+
+    xhr.open(post ? "POST" : "GET", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+
+    xhr.send(jsonData ? JSON.stringify(jsonData) : "");
+
+    const timeCount = setTimeout(() => {
+      const Err = `Timeout!`;
+      logger(`postToEndpoint ${url} Timeout Error`, Err);
+      reject(new Error(Err));
+    }, XMLHttpRequestTimeout);
+  });
+};
+
+const fetchWithTimeout = async (resource, options: any) => {
+  const { timeout = 80000 } = options;
+
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  const response = await fetch(resource, {
+    ...options,
+    signal: controller.signal,
+  });
+
+  clearTimeout(id);
+
+  return response;
 };

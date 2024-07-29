@@ -643,12 +643,7 @@ interface conetPlatform {
   passcode: "LOCKED" | "UNLOCKED" | "NONE";
 }
 
-type command =
-  | "profileVer"
-  | "assets"
-  | "purchaseStatus"
-  | "miningStatus"
-  | "tokenTransferStatus";
+type command = "balanceStatus" | "miningStatus" | "profileVer";
 interface channelWroker {
   cmd: command;
   data: any[];

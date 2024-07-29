@@ -54,6 +54,8 @@ const initEncryptWorker = async () => {
   channel.addEventListener("message", channelWorkerDoCommand);
   await checkStorage();
 
+  listenProfileVer();
+
   // testFunction();
 };
 
