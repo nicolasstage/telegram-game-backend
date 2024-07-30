@@ -189,7 +189,7 @@ declare type WorkerCommand =
   | "startMining"
   | "stopMining"
   | "getWalletCCNTPBalance"
-  | "getFirstRouletteResult"
+  | "getRouletteResult"
   | "getSecondRouletteResult"
   | "importWallet";
 

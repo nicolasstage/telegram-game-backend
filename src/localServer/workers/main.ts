@@ -1833,20 +1833,76 @@ const scan_erc20_balance = (
     }
   });
 
-const getFirstRouletteResult = async (cmd: worker_command) => {
-  // get random number from 0 to 3
-  const random = Math.floor(Math.random() * 4);
+const fetchRouletteResult = async (_profile: profile) => {
+  //		api server health check
+  const health = await getCONET_api_health();
+  if (!health) {
+    return null;
+  }
 
-  cmd.data[0] = random;
-  returnUUIDChannel(cmd);
+  //		make post obj
+  const message = JSON.stringify({ walletAddress: _profile.keyID });
+
+  //		use private key to sign post obj
+  const messageHash = ethers.id(message);
+  const signMessage = CoNETModule.EthCrypto.sign(
+    _profile.privateKeyArmor,
+    messageHash
+  );
+
+  const sendData = {
+    message,
+    signMessage,
+  };
+
+  //		lottery url
+  const url = `${apiv2_endpoint}lottery`;
+
+  //		post request
+  const result = await postToEndpoint(url, true, sendData);
+
+  //		Error!
+  if (!result) {
+    return null;
+  }
+
+  return result;
 };
 
-const getSecondRouletteResult = async (cmd: worker_command) => {
-  // get random number from 0 to 1
-  const random = Math.floor(Math.random() * 1);
+const getRouletteResult = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
 
-  cmd.data[0] = random;
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find(
+    (p) => p.keyID.toLowerCase() === profileKeyID.toLowerCase()
+  );
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+
+  const result = await fetchRouletteResult(_profile);
+
+  // log lottery result
+  logger(`testLottery got response ${result}`);
+
+  cmd.data[0] = result;
   returnUUIDChannel(cmd);
+
+  return result;
 };
 
 /**
@@ -1879,11 +1935,11 @@ const testFunction = async () => {
   // await startMining(cmd3);
   // -------- getFirstRouletteResult --------
   // const cmd4: worker_command = {
-  //   cmd: "getFirstRouletteResult",
-  //   data: [],
+  //   cmd: "getRouletteResult",
+  //   data: ["0xFaA48180274083D394ce4be2174CC41d72cD1164"],
   //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
   // };
-  // await getFirstRouletteResult(cmd4);
+  // await getRouletteResult(cmd4);
   // -------- importWallet --------
   // const cmd5: worker_command = {
   //   cmd: "importWallet",

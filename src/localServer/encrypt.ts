@@ -96,12 +96,8 @@ const processCmd = async (cmd: worker_command) => {
       return getWalletCCNTPBalance(cmd);
     }
 
-    case "getFirstRouletteResult": {
-      return getFirstRouletteResult(cmd);
-    }
-
-    case "getSecondRouletteResult": {
-      return getSecondRouletteResult(cmd);
+    case "getRouletteResult": {
+      return getRouletteResult(cmd);
     }
 
     case "startMining": {
