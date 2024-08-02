@@ -24,7 +24,8 @@ const api_endpoint = `https://api.conet.network/api/`;
 const apiv2_endpoint = `https://apiv2.conet.network/api/`;
 const ipfsEndpoint = `https://ipfs.conet.network/api/`;
 const conet_rpc = "https://rpc.conet.network";
-const ReferralsAddressV3 = '0x8f6be4704a3735024F4D2CBC5BAC3722c0C8a0BD'.toLowerCase()
+const ReferralsAddressV3 =
+  "0x8f6be4704a3735024F4D2CBC5BAC3722c0C8a0BD".toLowerCase();
 
 let authorization_key = "";
 const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
@@ -540,81 +541,81 @@ const blast_CNTPAbi = [
 
 const CONET_ReferralsAbi = [
   {
-      "inputs": [
-          {
-              "internalType": "address",
-              "name": "referrer",
-              "type": "address"
-          }
-      ],
-      "name": "addReferrer",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
+    inputs: [
+      {
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+    ],
+    name: "addReferrer",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-      "inputs": [
-          {
-              "internalType": "address",
-              "name": "refere",
-              "type": "address"
-          },
-          {
-              "internalType": "address[]",
-              "name": "referees",
-              "type": "address[]"
-          }
-      ],
-      "name": "checkReferees",
-      "outputs": [
-          {
-              "internalType": "bool",
-              "name": "hasAddress",
-              "type": "bool"
-          }
-      ],
-      "stateMutability": "view",
-      "type": "function"
+    inputs: [
+      {
+        internalType: "address",
+        name: "refere",
+        type: "address",
+      },
+      {
+        internalType: "address[]",
+        name: "referees",
+        type: "address[]",
+      },
+    ],
+    name: "checkReferees",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "hasAddress",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
-      "inputs": [
-          {
-              "internalType": "address",
-              "name": "referrer",
-              "type": "address"
-          }
-      ],
-      "name": "getReferees",
-      "outputs": [
-          {
-              "internalType": "address[]",
-              "name": "referees",
-              "type": "address[]"
-          }
-      ],
-      "stateMutability": "view",
-      "type": "function"
+    inputs: [
+      {
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+    ],
+    name: "getReferees",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "referees",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
-      "inputs": [
-          {
-              "internalType": "address",
-              "name": "referee",
-              "type": "address"
-          }
-      ],
-      "name": "getReferrer",
-      "outputs": [
-          {
-              "internalType": "address",
-              "name": "referrer",
-              "type": "address"
-          }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-  }
-]
+    inputs: [
+      {
+        internalType: "address",
+        name: "referee",
+        type: "address",
+      },
+    ],
+    name: "getReferrer",
+    outputs: [
+      {
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+];
 
 const listenProfileVer = async () => {
   listeningBlock = true;
@@ -1505,7 +1506,6 @@ const storagePieceToLocal = (newVer = "-1") => {
  */
 const createOrGetWallet = async (cmd: worker_command) => {
   if (!CoNET_Data?.profiles) {
-    
     const acc = createKeyHDWallets();
     const profile: profile = {
       tokens: initProfileTokens(),
@@ -1528,12 +1528,14 @@ const createOrGetWallet = async (cmd: worker_command) => {
     };
   }
 
+  getFaucet(CoNET_Data.profiles[0].keyID);
+
   await storeSystemData();
 
   const profile = CoNET_Data.profiles[0];
   cmd.data[0] = profile.keyID;
   cmd.data[1] = profile.privateKeyArmor;
-  cmd.data[2] = profile.referrer
+  cmd.data[2] = profile.referrer;
   return returnUUIDChannel(cmd);
 };
 
@@ -1988,40 +1990,41 @@ const getRouletteResult = async (cmd: worker_command) => {
 };
 
 const registerReferrer = async (referrer: string) => {
-	if (!CoNET_Data?.profiles) {
-		logger(`registerReferrer CoNET_Data?.profiles Empty error!`)
-		return false
-	}
+  if (!CoNET_Data?.profiles) {
+    logger(`registerReferrer CoNET_Data?.profiles Empty error!`);
+    return false;
+  }
 
-	const profile = CoNET_Data.profiles[0]
+  const profile = CoNET_Data.profiles[0];
 
-	if (!profile || !referrer) {
-		return false
-	}
+  if (!profile || !referrer) {
+    return false;
+  }
 
-	if (referrer.toLowerCase() === profile.keyID.toLowerCase() ) {
-		return false
-	}
+  if (referrer.toLowerCase() === profile.keyID.toLowerCase()) {
+    return false;
+  }
 
-	const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc)
-	const wallet = new ethers.Wallet(profile.privateKeyArmor, provideNewCONET)
-	const CNTP_Referrals = new ethers.Contract(ReferralsAddressV3, CONET_ReferralsAbi, wallet)
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(profile.privateKeyArmor, provideNewCONET);
+  const CNTP_Referrals = new ethers.Contract(
+    ReferralsAddressV3,
+    CONET_ReferralsAbi,
+    wallet
+  );
 
-	try {
-		const ref = await CNTP_Referrals.getReferrer(profile.keyID)
-		if (ref === '0x0000000000000000000000000000000000000000') {
-			await CNTP_Referrals.addReferrer(referrer)
-		}
-		
-	} catch (ex: any) {
-		return false
-	}
+  try {
+    const ref = await CNTP_Referrals.getReferrer(profile.keyID);
+    if (ref === "0x0000000000000000000000000000000000000000") {
+      await CNTP_Referrals.addReferrer(referrer);
+    }
+  } catch (ex: any) {
+    return false;
+  }
 
-	profile.referrer = referrer
-	return true
-}
-
-
+  profile.referrer = referrer;
+  return true;
+};
 
 /**
  * Function used only for testing. It's started by the initEncryptWorker in encrypt.ts.
