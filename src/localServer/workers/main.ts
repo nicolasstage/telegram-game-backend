@@ -24,6 +24,9 @@ const api_endpoint = `https://api.conet.network/api/`;
 const apiv2_endpoint = `https://apiv2.conet.network/api/`;
 const ipfsEndpoint = `https://ipfs.conet.network/api/`;
 const conet_rpc = "https://rpc1.conet.network";
+const ReferralsAddressV3 =
+  "0x8f6be4704a3735024F4D2CBC5BAC3722c0C8a0BD".toLowerCase();
+
 let authorization_key = "";
 const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
 let CoNET_Data: encrypt_keys_object | null = null;
@@ -536,12 +539,123 @@ const blast_CNTPAbi = [
   },
 ];
 
+const CONET_ReferralsAbi = [
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+    ],
+    name: "addReferrer",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "refere",
+        type: "address",
+      },
+      {
+        internalType: "address[]",
+        name: "referees",
+        type: "address[]",
+      },
+    ],
+    name: "checkReferees",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "hasAddress",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+    ],
+    name: "getReferees",
+    outputs: [
+      {
+        internalType: "address[]",
+        name: "referees",
+        type: "address[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "referee",
+        type: "address",
+      },
+    ],
+    name: "getReferrer",
+    outputs: [
+      {
+        internalType: "address",
+        name: "referrer",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+];
+
 const initV2 = async (profile) => {
   const url = `${apiv2_endpoint}initV3`;
   const result = await postToEndpoint(url, true, {
     walletAddress: profile.keyID,
   });
   logger(result);
+};
+
+const getAllReferrer = async () => {
+  if (!CoNET_Data?.profiles) {
+    return null;
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const CNTP_Referrals = new ethers.Contract(
+    ReferralsAddressV3,
+    CONET_ReferralsAbi,
+    provideNewCONET
+  );
+
+  for (let i of CoNET_Data?.profiles) {
+    const result = await getReferrer(i.keyID, CNTP_Referrals);
+    if (!result || result === "0x0000000000000000000000000000000000000000") {
+      delete i.referrer;
+      continue;
+    }
+    i.referrer = result;
+  }
+};
+
+const getReferrer = async (walletAddress: string, CNTP_Referrals) => {
+  let result: string;
+  try {
+    result = await CNTP_Referrals.getReferrer(walletAddress);
+  } catch (ex) {
+    logger(`getReferees [${walletAddress}] Error! try again!`);
+    return null;
+  }
+  return result;
 };
 
 const listenProfileVer = async () => {
@@ -555,14 +669,11 @@ const listenProfileVer = async () => {
     }
 
     await getAllProfileAssetsBalance();
-
-    const balance = (
-      parseFloat(profiles[0]?.tokens?.cCNTP?.balance) / Math.pow(10, 18)
-    ).toFixed(6);
+    await getAllReferrer();
 
     const cmd: channelWroker = {
-      cmd: "balanceStatus",
-      data: [balance],
+      cmd: "profileVer",
+      data: [profiles[0]],
     };
 
     sendState("toFrontEnd", cmd);
@@ -571,6 +682,8 @@ const listenProfileVer = async () => {
       const [nonce, _ver] = await checkProfileVersion(profiles[0].keyID);
       await updateProfilesToRemote(_ver, CoNET_Data, profiles);
     }
+
+    storeSystemData();
   });
 
   epoch = await provideCONET.getBlockNumber();
@@ -1461,11 +1574,15 @@ const createOrGetWallet = async (cmd: worker_command) => {
     n.tokens.cCNTP.unlocked = false;
   });
 
+  getFaucet(CoNET_Data.profiles[0].keyID);
+
+  await getAllReferrer();
+
   await storeSystemData();
 
   const profile = CoNET_Data.profiles[0];
-  cmd.data[0] = profile.keyID;
-  cmd.data[1] = profile.privateKeyArmor;
+  cmd.data[0] = profile;
+
   return returnUUIDChannel(cmd);
 };
 
@@ -1515,7 +1632,18 @@ const importWallet = async (cmd: worker_command) => {
   };
 
   CoNET_Data.profiles = [profile];
-  cmd.data[0] = CoNET_Data.profiles;
+
+  getFaucet(CoNET_Data.profiles[0].keyID);
+
+  CoNET_Data.profiles.forEach(async (n) => {
+    n.keyID = n.keyID.toLocaleLowerCase();
+    await initV2(n);
+    n.tokens.cCNTP.unlocked = false;
+  });
+
+  await getAllReferrer();
+
+  cmd.data[0] = CoNET_Data.profiles[0];
   returnUUIDChannel(cmd);
 
   await storagePieceToLocal();
@@ -1917,6 +2045,60 @@ const getRouletteResult = async (cmd: worker_command) => {
   returnUUIDChannel(cmd);
 
   return result;
+};
+
+const registerReferrer = async (cmd: worker_command) => {
+  const referrer = cmd.data[0];
+
+  if (!referrer) {
+    cmd.err = "FAILURE";
+    returnUUIDChannel(cmd);
+  }
+
+  if (!CoNET_Data?.profiles) {
+    logger(`registerReferrer CoNET_Data?.profiles Empty error!`);
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profile = CoNET_Data.profiles[0];
+
+  if (!profile || !referrer) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  if (referrer.toLowerCase() === profile.keyID.toLowerCase()) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(profile.privateKeyArmor, provideNewCONET);
+  const CNTP_Referrals = new ethers.Contract(
+    ReferralsAddressV3,
+    CONET_ReferralsAbi,
+    wallet
+  );
+
+  try {
+    const ref = await CNTP_Referrals.getReferrer(profile.keyID);
+    if (ref === "0x0000000000000000000000000000000000000000") {
+      await CNTP_Referrals.addReferrer(referrer);
+    }
+  } catch (ex: any) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  profile.referrer = referrer;
+
+  storeSystemData();
+
+  cmd.data[0] = referrer;
+  returnUUIDChannel(cmd);
+
+  return referrer;
 };
 
 /**

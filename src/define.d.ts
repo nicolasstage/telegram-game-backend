@@ -188,6 +188,7 @@ declare type WorkerCommand =
   | "createOrGetWallet"
   | "startMining"
   | "stopMining"
+  | "registerReferrer"
   | "getWalletCCNTPBalance"
   | "getRouletteResult"
   | "getSecondRouletteResult"
