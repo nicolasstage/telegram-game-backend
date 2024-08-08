@@ -1,7 +1,7 @@
 const databaseName = "conet";
 //	******************************************************************
 const cCNTP_new_Addr =
-  "0x530cf1B598D716eC79aa916DD2F05ae8A0cE8ee2".toLocaleLowerCase();
+  "0xa4b389994A591735332A67f3561D60ce96409347".toLocaleLowerCase();
 const profile_ver_addr =
   "0x556bB96fC4C1316B2e5CEaA133f5D4157Eb05681".toLowerCase();
 const CONET_Guardian_NodeInfoV4 = "0x264ea87162463165101A500a6Bf8755b91220350";
@@ -23,7 +23,7 @@ let miningStatus: "STOP" | "RESTART" | "MINING" = "STOP";
 const api_endpoint = `https://api.conet.network/api/`;
 const apiv2_endpoint = `https://apiv2.conet.network/api/`;
 const ipfsEndpoint = `https://ipfs.conet.network/api/`;
-const conet_rpc = "https://rpc.conet.network";
+const conet_rpc = "https://rpc1.conet.network";
 const ReferralsAddressV3 =
   "0x8f6be4704a3735024F4D2CBC5BAC3722c0C8a0BD".toLowerCase();
 
@@ -616,6 +616,14 @@ const CONET_ReferralsAbi = [
     type: "function",
   },
 ];
+
+const initV2 = async (profile) => {
+  const url = `${apiv2_endpoint}initV3`;
+  const result = await postToEndpoint(url, true, {
+    walletAddress: profile.keyID,
+  });
+  logger(result);
+};
 
 const listenProfileVer = async () => {
   listeningBlock = true;
@@ -1527,6 +1535,12 @@ const createOrGetWallet = async (cmd: worker_command) => {
       nonce: 0,
     };
   }
+
+  CoNET_Data.profiles.forEach(async (n) => {
+    n.keyID = n.keyID.toLocaleLowerCase();
+    await initV2(n);
+    n.tokens.cCNTP.unlocked = false;
+  });
 
   getFaucet(CoNET_Data.profiles[0].keyID);
 
