@@ -625,6 +625,39 @@ const initV2 = async (profile) => {
   logger(result);
 };
 
+const getAllReferrer = async () => {
+  if (!CoNET_Data?.profiles) {
+    return null;
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const CNTP_Referrals = new ethers.Contract(
+    ReferralsAddressV3,
+    CONET_ReferralsAbi,
+    provideNewCONET
+  );
+
+  for (let i of CoNET_Data?.profiles) {
+    const result = await getReferrer(i.keyID, CNTP_Referrals);
+    if (!result || result === "0x0000000000000000000000000000000000000000") {
+      delete i.referrer;
+      continue;
+    }
+    i.referrer = result;
+  }
+};
+
+const getReferrer = async (walletAddress: string, CNTP_Referrals) => {
+  let result: string;
+  try {
+    result = await CNTP_Referrals.getReferrer(walletAddress);
+  } catch (ex) {
+    logger(`getReferees [${walletAddress}] Error! try again!`);
+    return null;
+  }
+  return result;
+};
+
 const listenProfileVer = async () => {
   listeningBlock = true;
   provideCONET.on("block", async (block) => {
@@ -636,14 +669,11 @@ const listenProfileVer = async () => {
     }
 
     await getAllProfileAssetsBalance();
-
-    const balance = (
-      parseFloat(profiles[0]?.tokens?.cCNTP?.balance) / Math.pow(10, 18)
-    ).toFixed(6);
+    await getAllReferrer();
 
     const cmd: channelWroker = {
-      cmd: "balanceStatus",
-      data: [balance],
+      cmd: "profileVer",
+      data: [profiles[0]],
     };
 
     sendState("toFrontEnd", cmd);
@@ -652,6 +682,8 @@ const listenProfileVer = async () => {
       const [nonce, _ver] = await checkProfileVersion(profiles[0].keyID);
       await updateProfilesToRemote(_ver, CoNET_Data, profiles);
     }
+
+    storeSystemData();
   });
 
   epoch = await provideCONET.getBlockNumber();
@@ -1544,12 +1576,13 @@ const createOrGetWallet = async (cmd: worker_command) => {
 
   getFaucet(CoNET_Data.profiles[0].keyID);
 
+  await getAllReferrer();
+
   await storeSystemData();
 
   const profile = CoNET_Data.profiles[0];
-  cmd.data[0] = profile.keyID;
-  cmd.data[1] = profile.privateKeyArmor;
-  cmd.data[2] = profile.referrer;
+  cmd.data[0] = profile;
+
   return returnUUIDChannel(cmd);
 };
 
@@ -1599,7 +1632,18 @@ const importWallet = async (cmd: worker_command) => {
   };
 
   CoNET_Data.profiles = [profile];
-  cmd.data[0] = CoNET_Data.profiles;
+
+  getFaucet(CoNET_Data.profiles[0].keyID);
+
+  CoNET_Data.profiles.forEach(async (n) => {
+    n.keyID = n.keyID.toLocaleLowerCase();
+    await initV2(n);
+    n.tokens.cCNTP.unlocked = false;
+  });
+
+  await getAllReferrer();
+
+  cmd.data[0] = CoNET_Data.profiles[0];
   returnUUIDChannel(cmd);
 
   await storagePieceToLocal();
@@ -2003,20 +2047,30 @@ const getRouletteResult = async (cmd: worker_command) => {
   return result;
 };
 
-const registerReferrer = async (referrer: string) => {
+const registerReferrer = async (cmd: worker_command) => {
+  const referrer = cmd.data[0];
+
+  if (!referrer) {
+    cmd.err = "FAILURE";
+    returnUUIDChannel(cmd);
+  }
+
   if (!CoNET_Data?.profiles) {
     logger(`registerReferrer CoNET_Data?.profiles Empty error!`);
-    return false;
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
   }
 
   const profile = CoNET_Data.profiles[0];
 
   if (!profile || !referrer) {
-    return false;
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
   }
 
   if (referrer.toLowerCase() === profile.keyID.toLowerCase()) {
-    return false;
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
   }
 
   const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
@@ -2033,11 +2087,18 @@ const registerReferrer = async (referrer: string) => {
       await CNTP_Referrals.addReferrer(referrer);
     }
   } catch (ex: any) {
-    return false;
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
   }
 
   profile.referrer = referrer;
-  return true;
+
+  storeSystemData();
+
+  cmd.data[0] = referrer;
+  returnUUIDChannel(cmd);
+
+  return referrer;
 };
 
 /**

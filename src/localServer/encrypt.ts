@@ -12,7 +12,6 @@ const channel = new BroadcastChannel(channelWrokerListenName);
 
 const backGroundPoolWorker: clientPoolWroker[] = [];
 
-
 self.onhashchange = () => {
   channel.removeEventListener("message", channelWorkerDoCommand);
 };
@@ -110,26 +109,9 @@ const processCmd = async (cmd: worker_command) => {
       return returnUUIDChannel(cmd);
     }
 
-    case 'registerReferrer': {
-			const referrer = cmd.data[0]
-			if (!referrer) {
-				cmd.err='FAILURE'
-				returnUUIDChannel(cmd)
-			}
-			/*const isAddr = CoNETModule.Web3Eth.utils.isAddress(referrer)
-
-			if (!isAddr) {
-				cmd.err='FAILURE'
-				return returnUUIDChannel(cmd)
-			}*/
-			const result = await registerReferrer(referrer)
-			if (result === false)  {
-				cmd.err='FAILURE'
-				return returnUUIDChannel(cmd)
-			}
-			return returnUUIDChannel(cmd)
-		}
-		
+    case "registerReferrer": {
+      return registerReferrer(cmd);
+    }
 
     default: {
       cmd.err = "INVALID_COMMAND";
