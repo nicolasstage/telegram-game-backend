@@ -2095,7 +2095,7 @@ const registerReferrer = async (cmd: worker_command) => {
 
   storeSystemData();
 
-  cmd.data[0] = referrer;
+  cmd.data[0] = profile;
   returnUUIDChannel(cmd);
 
   return referrer;
