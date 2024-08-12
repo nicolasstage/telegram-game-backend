@@ -1,7 +1,7 @@
 const databaseName = "conet";
 //	******************************************************************
 const cCNTP_new_Addr =
-  "0xa4b389994A591735332A67f3561D60ce96409347".toLocaleLowerCase();
+  "0x5B4d548BAA7d549D030D68FD494bD20032E2bb2b".toLocaleLowerCase();
 const profile_ver_addr =
   "0x556bB96fC4C1316B2e5CEaA133f5D4157Eb05681".toLowerCase();
 const CONET_Guardian_NodeInfoV4 = "0x264ea87162463165101A500a6Bf8755b91220350";
