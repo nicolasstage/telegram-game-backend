@@ -1544,7 +1544,7 @@ const storagePieceToLocal = (newVer = "-1") => {
  * @param cmd - empty data
  * @returns
  */
-const createOrGetWallet = async (cmd: worker_command) => {
+const createOrGetWallet = async () => {
   if (!CoNET_Data?.profiles) {
     const acc = createKeyHDWallets();
     const profile: profile = {
@@ -1581,9 +1581,13 @@ const createOrGetWallet = async (cmd: worker_command) => {
   await storeSystemData();
 
   const profile = CoNET_Data.profiles[0];
-  cmd.data[0] = profile;
 
-  return returnUUIDChannel(cmd);
+  const cmd: channelWroker = {
+    cmd: "profileVer",
+    data: [profile],
+  };
+
+  sendState("toFrontEnd", cmd);
 };
 
 const importWallet = async (cmd: worker_command) => {
@@ -1934,26 +1938,6 @@ const startMining = async (cmd: worker_command) => {
   return await _startMining(_profile, cmd);
 };
 
-/**
- * Returns the balance of cCNTP of a given wallet
- * @param cmd - data[0] is wallet address
- * @returns Promise < string > - wallet's cCNTP balance
- */
-const getWalletCCNTPBalance = async (cmd: worker_command) => {
-  const walletAddr: string = cmd.data[0];
-
-  const balance = await scan_erc20_balance(
-    walletAddr,
-    provideCONET,
-    cCNTP_new_Addr
-  );
-
-  const treatedBalance = Number(balance) / 10 ** 18;
-
-  cmd.data[0] = treatedBalance.toFixed(6);
-  returnUUIDChannel(cmd);
-};
-
 const scan_erc20_balance = (
   walletAddr: string,
   _provideCONET: any,
@@ -2106,22 +2090,6 @@ const registerReferrer = async (cmd: worker_command) => {
  * DO NOT USE IN PRODUCTION.
  */
 const testFunction = async () => {
-  //   -------- createOrGetWallet --------
-  // const cmd1: worker_command = {
-  //   cmd: "createOrGetWallet",
-  //   data: [],
-  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
-  // };
-  // const profileKeyID = await createOrGetWallet(cmd1);
-  //
-  // -------- getWalletCCNTPBalance --------
-  //   const cmd2: worker_command = {
-  //     cmd: "getWalletCCNTPBalance",
-  //     data: ["0xFaA48180274083D394ce4be2174CC41d72cD1164"],
-  //     uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
-  //   };
-  //   await getWalletCCNTPBalance(cmd2);
-  //
   //   -------- startMining --------
   // const cmd3: worker_command = {
   //   cmd: "startMining",

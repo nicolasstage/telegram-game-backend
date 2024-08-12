@@ -185,13 +185,10 @@ declare type verification =
 declare type conetMiner = "Err_Server_Unreachable" | "Err_Multiple_IP";
 
 declare type WorkerCommand =
-  | "createOrGetWallet"
   | "startMining"
   | "stopMining"
   | "registerReferrer"
-  | "getWalletCCNTPBalance"
   | "getRouletteResult"
-  | "getSecondRouletteResult"
   | "importWallet";
 
 type SINodesSortby =
