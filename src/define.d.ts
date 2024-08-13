@@ -189,7 +189,8 @@ declare type WorkerCommand =
   | "stopMining"
   | "registerReferrer"
   | "getRouletteResult"
-  | "importWallet";
+  | "importWallet"
+  | "clearStorage";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"

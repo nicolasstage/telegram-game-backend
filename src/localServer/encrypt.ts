@@ -107,6 +107,10 @@ const processCmd = async (cmd: worker_command) => {
       return registerReferrer(cmd);
     }
 
+    case "clearStorage": {
+      return clearStorage(cmd);
+    }
+
     default: {
       cmd.err = "INVALID_COMMAND";
       responseChannel.postMessage(JSON.stringify(cmd));

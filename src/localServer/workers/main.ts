@@ -2085,6 +2085,20 @@ const registerReferrer = async (cmd: worker_command) => {
   return referrer;
 };
 
+const clearStorage = async (cmd: worker_command) => {
+  const database = new PouchDB(databaseName, { auto_compaction: true });
+  await database.destroy((err, response) => {
+    if (err) {
+      return console.log(err);
+    } else {
+      console.log("Database Deleted");
+      CoNET_Data = null;
+      createOrGetWallet();
+    }
+  });
+  returnUUIDChannel(cmd);
+};
+
 /**
  * Function used only for testing. It's started by the initEncryptWorker in encrypt.ts.
  * DO NOT USE IN PRODUCTION.
