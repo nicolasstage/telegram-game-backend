@@ -48,7 +48,7 @@ const initEncryptWorker = async () => {
 
   self.importScripts(baseUrl + "util.js");
   self.importScripts(baseUrl + "CoNETModule.js");
-  self.importScripts(baseUrl + "main.js");
+  self.importScripts(baseUrl + "main_v1.js");
 
   channelLoading.postMessage(90);
   channel.addEventListener("message", channelWorkerDoCommand);
