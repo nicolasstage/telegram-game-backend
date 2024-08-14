@@ -670,10 +670,11 @@ const listenProfileVer = async () => {
 
     await getAllProfileAssetsBalance();
     await getAllReferrer();
+    const leaderboards = await getLeaderboards();
 
     const cmd: channelWroker = {
       cmd: "profileVer",
-      data: [profiles[0]],
+      data: [profiles[0], leaderboards],
     };
 
     sendState("toFrontEnd", cmd);
@@ -1536,6 +1537,31 @@ const storagePieceToLocal = (newVer = "-1") => {
       }
     );
   });
+};
+
+const getLeaderboards = async () => {
+  // lottery url
+  const url = `${ipfsEndpoint}getFragment/gaem_LeaderBoard`;
+
+  // post request
+  const response = await fetchWithTimeout(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json;charset=UTF-8",
+      Connection: "close",
+    },
+    cache: "no-store",
+    referrerPolicy: "no-referrer",
+  });
+
+  // Error!
+  if (response.status !== 200) {
+    return null;
+  }
+
+  const allTimeLeaderboard = await response.json();
+
+  return { allTime: allTimeLeaderboard, weekly: null, daily: null };
 };
 
 /**

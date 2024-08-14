@@ -7,6 +7,7 @@ const CoNETModule: CoNET_Module = {
   Web3Eth: null,
   Web3Utils: null,
   forge: null,
+
   aesGcmEncrypt: async (plaintext: string, password: string) => {
     const pwUtf8 = new TextEncoder().encode(password); // encode password as UTF-8
     const pwHash = await crypto.subtle.digest("SHA-256", pwUtf8); // hash the password
