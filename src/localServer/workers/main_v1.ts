@@ -1608,9 +1608,11 @@ const createOrGetWallet = async () => {
 
   const profile = CoNET_Data.profiles[0];
 
+  const leaderboards = await getLeaderboards();
+
   const cmd: channelWroker = {
     cmd: "profileVer",
-    data: [profile],
+    data: [profile, leaderboards],
   };
 
   sendState("toFrontEnd", cmd);
