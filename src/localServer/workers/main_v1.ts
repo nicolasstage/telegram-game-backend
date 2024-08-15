@@ -1559,9 +1559,14 @@ const getLeaderboards = async () => {
     return null;
   }
 
-  const allTimeLeaderboard = await response.json();
+  const allLeaderBoards = await response.json();
 
-  return { allTime: allTimeLeaderboard, weekly: null, daily: null };
+  return {
+    allTime: allLeaderBoards.totally,
+    monthly: allLeaderBoards.monthly,
+    weekly: allLeaderBoards.weekly,
+    daily: allLeaderBoards.daliy,
+  };
 };
 
 /**
