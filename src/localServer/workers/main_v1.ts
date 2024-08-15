@@ -2017,15 +2017,13 @@ const fetchRouletteResult = async (_profile: profile) => {
   //		lottery url
   const url = `${apiv2_endpoint}lottery`;
 
-  //		post request
-  const result = await postToEndpoint(url, true, sendData);
-
-  //		Error!
-  if (!result) {
+  try {
+    const result = await postToEndpoint(url, true, sendData);
+    return result;
+  } catch (ex) {
+    logger(`fetchRouletteResult postToEndpoint [${url}] error! `, ex);
     return null;
   }
-
-  return result;
 };
 
 const getRouletteResult = async (cmd: worker_command) => {
@@ -2054,6 +2052,11 @@ const getRouletteResult = async (cmd: worker_command) => {
   }
 
   const result = await fetchRouletteResult(_profile);
+
+  if (!result) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
 
   // log lottery result
   logger(`testLottery got response ${result}`);
