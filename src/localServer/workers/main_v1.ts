@@ -868,8 +868,12 @@ const updateProfilesVersionToIPFS: () => Promise<boolean> = () =>
 
 const getCONET_api_health = async () => {
   const url = `${apiv2_endpoint}health`;
-  const result: any = await postToEndpoint(url, false, null);
-  return result?.health;
+  try {
+    const result: any = await postToEndpoint(url, false, null);
+    return result?.health;
+  } catch (ex) {
+    return null;
+  }
 };
 
 const getFragmentsFromPublic: (hash: string) => Promise<string> = (hash) => {

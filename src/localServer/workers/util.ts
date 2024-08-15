@@ -98,23 +98,24 @@ const postToEndpoint = (url: string, post: boolean, jsonData) => {
     const xhr = new XMLHttpRequest();
     xhr.onload = () => {
       clearTimeout(timeCount);
-      //const status = parseInt(xhr.responseText.split (' ')[1])
 
       if (xhr.status === 200) {
-        // parse JSON
-
         if (!xhr.responseText.length) {
           return resolve("");
         }
+
         let ret;
+
         try {
           ret = JSON.parse(xhr.responseText);
         } catch (ex) {
           if (post) {
             return resolve("");
           }
+
           return resolve(xhr.responseText);
         }
+
         return resolve(ret);
       }
 
@@ -123,10 +124,18 @@ const postToEndpoint = (url: string, post: boolean, jsonData) => {
           xhr.status === 200
         }] !== 200 Error`
       );
+
       return resolve(false);
     };
 
+    xhr.onerror = (err) => {
+      logger(`xhr.onerror`, err);
+      clearTimeout(timeCount);
+      return reject(err);
+    };
+
     xhr.open(post ? "POST" : "GET", url, true);
+
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
 
     xhr.send(jsonData ? JSON.stringify(jsonData) : "");
