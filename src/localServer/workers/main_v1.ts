@@ -661,30 +661,32 @@ const getReferrer = async (walletAddress: string, CNTP_Referrals) => {
 const listenProfileVer = async () => {
   listeningBlock = true;
   provideCONET.on("block", async (block) => {
-    epoch = block;
+    if (block === epoch + 1) {
+      epoch++;
 
-    const profiles = CoNET_Data?.profiles;
-    if (!profiles) {
-      return;
+      const profiles = CoNET_Data?.profiles;
+      if (!profiles) {
+        return;
+      }
+
+      await getAllProfileAssetsBalance();
+      await getAllReferrer();
+      const leaderboards = await getLeaderboards();
+
+      const cmd: channelWroker = {
+        cmd: "profileVer",
+        data: [profiles[0], leaderboards],
+      };
+
+      sendState("toFrontEnd", cmd);
+
+      if (needUpgradeVer === epoch && profiles) {
+        const [nonce, _ver] = await checkProfileVersion(profiles[0].keyID);
+        await updateProfilesToRemote(_ver, CoNET_Data, profiles);
+      }
+
+      storeSystemData();
     }
-
-    await getAllProfileAssetsBalance();
-    await getAllReferrer();
-    const leaderboards = await getLeaderboards();
-
-    const cmd: channelWroker = {
-      cmd: "profileVer",
-      data: [profiles[0], leaderboards],
-    };
-
-    sendState("toFrontEnd", cmd);
-
-    if (needUpgradeVer === epoch && profiles) {
-      const [nonce, _ver] = await checkProfileVersion(profiles[0].keyID);
-      await updateProfilesToRemote(_ver, CoNET_Data, profiles);
-    }
-
-    storeSystemData();
   });
 
   epoch = await provideCONET.getBlockNumber();
