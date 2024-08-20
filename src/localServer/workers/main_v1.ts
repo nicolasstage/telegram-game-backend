@@ -40,6 +40,7 @@ let checkcheckUpdateLock = false;
 let getFaucetRoop = 0;
 const blast_mainnet_CNTP = "0x0f43685B2cB08b9FB8Ca1D981fF078C22Fec84c5";
 const leaderboardUpdateInterval = 1000 * 60 * 60 * 3;
+let isFetchingLeaderboard = false;
 
 const conet_storageAbi = [
   {
@@ -1597,6 +1598,12 @@ const getLeaderboards = async () => {
   );
 
   if (leaderboardNeedsUpdate) {
+    if (isFetchingLeaderboard) {
+      return allLeaderboards;
+    }
+
+    isFetchingLeaderboard = true;
+
     // leaderboard url
     const url = `${ipfsEndpoint}getFragment/gaem_LeaderBoard`;
 
@@ -1610,6 +1617,8 @@ const getLeaderboards = async () => {
       cache: "no-store",
       referrerPolicy: "no-referrer",
     });
+
+    isFetchingLeaderboard = false;
 
     // Error!
     if (response.status !== 200) {
