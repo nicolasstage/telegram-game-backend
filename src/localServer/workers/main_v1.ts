@@ -30,6 +30,7 @@ const conet_rpc = "https://rpc1.conet.network";
 let authorization_key = "";
 const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
 let CoNET_Data: encrypt_keys_object | null = null;
+let leaderboards: any;
 let passObj: passInit | null = null;
 let preferences: any = null;
 let epoch = 0;
@@ -38,6 +39,7 @@ let listeningBlock = false;
 let checkcheckUpdateLock = false;
 let getFaucetRoop = 0;
 const blast_mainnet_CNTP = "0x0f43685B2cB08b9FB8Ca1D981fF078C22Fec84c5";
+const leaderboardUpdateInterval = 1000 * 60 * 60 * 3;
 
 const conet_storageAbi = [
   {
@@ -658,8 +660,46 @@ const getReferrer = async (walletAddress: string, CNTP_Referrals) => {
   return result;
 };
 
+const checkLeaderboardNeedsUpdate = async (localLeaderboardsTimeStamp) => {
+  try {
+    if (localLeaderboardsTimeStamp) {
+      const currentTimestamp = Date.now();
+      const diff = currentTimestamp - parseInt(localLeaderboardsTimeStamp);
+
+      if (diff < leaderboardUpdateInterval) {
+        return false;
+      }
+    }
+
+    return true;
+  } catch (ex) {
+    return true;
+  }
+};
+
+const getLeaderboardsFromLocal = async () => {
+  const database = new PouchDB(databaseName, { auto_compaction: true });
+
+  try {
+    const doc = await database.get("leaderboards", {
+      latest: true,
+    });
+    const _leaderboards = JSON.parse(
+      buffer.Buffer.from(doc.title, "base64").toString()
+    );
+    return _leaderboards;
+  } catch (ex) {
+    logger(
+      `getLeaderboardsFromLocal has no leaderboard timestamp data in IndexDB, INIT leaderboard timestamp`
+    );
+
+    return null;
+  }
+};
+
 const listenProfileVer = async () => {
   listeningBlock = true;
+
   provideCONET.on("block", async (block) => {
     if (block === epoch + 1) {
       epoch++;
@@ -671,11 +711,11 @@ const listenProfileVer = async () => {
 
       await getAllProfileAssetsBalance();
       await getAllReferrer();
-      const leaderboards = await getLeaderboards();
+      leaderboards = await getLeaderboards();
 
       const cmd: channelWroker = {
         cmd: "profileVer",
-        data: [profiles[0], leaderboards],
+        data: [profiles[0], leaderboards || null],
       };
 
       sendState("toFrontEnd", cmd);
@@ -1546,32 +1586,52 @@ const storagePieceToLocal = (newVer = "-1") => {
 };
 
 const getLeaderboards = async () => {
-  // lottery url
-  const url = `${ipfsEndpoint}getFragment/gaem_LeaderBoard`;
+  let allLeaderboards = leaderboards;
 
-  // post request
-  const response = await fetchWithTimeout(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json;charset=UTF-8",
-      Connection: "close",
-    },
-    cache: "no-store",
-    referrerPolicy: "no-referrer",
-  });
-
-  // Error!
-  if (response.status !== 200) {
-    return null;
+  if (!allLeaderboards) {
+    allLeaderboards = await getLeaderboardsFromLocal();
   }
 
-  const allLeaderBoards = await response.json();
+  const leaderboardNeedsUpdate = await checkLeaderboardNeedsUpdate(
+    allLeaderboards?.timestamp || null
+  );
+
+  if (leaderboardNeedsUpdate) {
+    // leaderboard url
+    const url = `${ipfsEndpoint}getFragment/gaem_LeaderBoard`;
+
+    // post request
+    const response = await fetchWithTimeout(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json;charset=UTF-8",
+        Connection: "close",
+      },
+      cache: "no-store",
+      referrerPolicy: "no-referrer",
+    });
+
+    // Error!
+    if (response.status !== 200) {
+      return null;
+    }
+
+    allLeaderboards = await response.json();
+    allLeaderboards.timestamp = Date.now();
+
+    // save leaderboards
+    storageHashData(
+      "leaderboards",
+      buffer.Buffer.from(JSON.stringify(allLeaderboards))
+    );
+  }
 
   return {
-    allTime: allLeaderBoards.totally,
-    monthly: allLeaderBoards.monthly,
-    weekly: allLeaderBoards.weekly,
-    daily: allLeaderBoards.daliy,
+    allTime: allLeaderboards.totally,
+    monthly: allLeaderboards.monthly,
+    weekly: allLeaderboards.weekly,
+    daily: allLeaderboards.daliy,
+    timestamp: allLeaderboards.timestamp,
   };
 };
 
