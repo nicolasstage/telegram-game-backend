@@ -2,7 +2,7 @@ const databaseName = "conet";
 
 //	******************************************************************
 const cCNTP_new_Addr =
-  "0x5B4d548BAA7d549D030D68FD494bD20032E2bb2b".toLocaleLowerCase();
+  "0xa4b389994A591735332A67f3561D60ce96409347".toLocaleLowerCase();
 const profile_ver_addr =
   "0x556bB96fC4C1316B2e5CEaA133f5D4157Eb05681".toLowerCase();
 const CONET_Guardian_NodeInfoV4 = "0x264ea87162463165101A500a6Bf8755b91220350";
@@ -26,7 +26,7 @@ let miningStatus: "STOP" | "RESTART" | "MINING" = "STOP";
 const api_endpoint = `https://api.conet.network/api/`;
 const apiv2_endpoint = `https://apiv2.conet.network/api/`;
 const ipfsEndpoint = `https://ipfs.conet.network/api/`;
-const conet_rpc = "https://rpc1.conet.network";
+const conet_rpc = "https://rpc.conet.network";
 let authorization_key = "";
 const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
 let CoNET_Data: encrypt_keys_object | null = null;
