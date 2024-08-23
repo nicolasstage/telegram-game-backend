@@ -3,6 +3,7 @@ const databaseName = "conet";
 //	******************************************************************
 const cCNTP_new_Addr =
   "0xa4b389994A591735332A67f3561D60ce96409347".toLocaleLowerCase();
+const faucet_addr = "0x9E70d462c434ca3f5aE567E9a406C08B2e25c066";
 const profile_ver_addr =
   "0x556bB96fC4C1316B2e5CEaA133f5D4157Eb05681".toLowerCase();
 const CONET_Guardian_NodeInfoV4 = "0x264ea87162463165101A500a6Bf8755b91220350";
@@ -617,6 +618,300 @@ const CONET_ReferralsAbi = [
     ],
     stateMutability: "view",
     type: "function",
+  },
+];
+
+const faucetAbi = [
+  {
+    inputs: [],
+    stateMutability: "payable",
+    type: "constructor",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "Sender",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "Value",
+        type: "uint256",
+      },
+    ],
+    name: "Received",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "times",
+        type: "uint256",
+      },
+    ],
+    name: "e_changeMaxIPTimes",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "ipaddress",
+        type: "bytes32",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "e_getFaucet",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "adminList",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "status",
+        type: "bool",
+      },
+    ],
+    name: "changeAddressInAdminlist",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "changeFaucetAmount",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "_wallets",
+        type: "address[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "amounts",
+        type: "uint256[]",
+      },
+    ],
+    name: "changeInit_batch",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "max",
+        type: "uint256",
+      },
+    ],
+    name: "changeMaxIPTimes",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "wallet",
+        type: "address",
+      },
+    ],
+    name: "checkInit",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "status",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getBalance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getBlockTimestamp",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "getFaucet",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "ipaddress",
+        type: "string",
+      },
+    ],
+    name: "getFaucet",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "initCONET",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "lastFaucet",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "lastIpaddress",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    stateMutability: "payable",
+    type: "receive",
   },
 ];
 
@@ -1237,37 +1532,53 @@ const getAllProfileAssetsBalance = () =>
         return logger(`getAllProfileAssetsBalance getCONET_api_health Err`);
       }
 
-      await getFaucet(profiles[0].keyID);
+      await getFaucet(profiles[0].keyID, profiles[0].privateKeyArmor);
     }
 
     return resolve(true);
   });
 
-const getFaucet = async (keyID: string) =>
-  new Promise(async (resolve) => {
+const getFaucet = async (keyId, privateKey: string) => {
+  if (CoNET_Data?.profiles[0].tokens.conet.balance === "0") {
     if (++getFaucetRoop > 6) {
       getFaucetRoop = 0;
       logger(`getFaucet Roop > 6 STOP process!`);
-      return resolve(null);
+      return null;
     }
-
     const url = `${apiv2_endpoint}conet-faucet`;
     let result;
     try {
-      result = await postToEndpoint(url, true, { walletAddr: keyID });
+      result = await postToEndpoint(url, true, { walletAddr: keyId });
     } catch (ex) {
       logger(`getFaucet postToEndpoint [${url}] error! `, ex);
-      return resolve(null);
+      return null;
     }
-
     getFaucetRoop = 0;
-    const txHash = result?.tx;
 
-    if (txHash) {
-      return resolve(true);
+    if (result) {
+      return true;
     }
-    return resolve(null);
-  });
+
+    return null;
+  } else {
+    const provide = new ethers.JsonRpcProvider(conet_rpc);
+    const wallet = new ethers.Wallet(privateKey, provide);
+    const faucetSmartContract = new ethers.Contract(
+      faucet_addr,
+      faucetAbi,
+      wallet
+    );
+
+    try {
+      const tx = await faucetSmartContract.getFaucet();
+      console.log(`success hash = ${tx.hash}`);
+      return true;
+    } catch (ex) {
+      console.log(ex);
+      return null;
+    }
+  }
+};
 
 const checkTokenStructure = (token: any) => {
   if (!token?.cCNTP) {
@@ -1318,6 +1629,7 @@ const getProfileAssets_CONET_Balance = async (profile: profile) => {
     checkTokenStructure(current);
 
     const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
+
     const [balanceCCNTP, conet_Holesky] = await Promise.all([
       scanCCNTP(key, provideCONET),
       scanCONETHolesky(key, provideCONET),
@@ -1680,7 +1992,10 @@ const createOrGetWallet = async () => {
     n.tokens.cCNTP.unlocked = false;
   });
 
-  getFaucet(CoNET_Data.profiles[0].keyID);
+  await getFaucet(
+    CoNET_Data.profiles[0].keyID,
+    CoNET_Data.profiles[0].privateKeyArmor
+  );
 
   await getAllReferrer();
 
@@ -1745,7 +2060,10 @@ const importWallet = async (cmd: worker_command) => {
 
   CoNET_Data.profiles = [profile];
 
-  getFaucet(CoNET_Data.profiles[0].keyID);
+  await getFaucet(
+    CoNET_Data.profiles[0].keyID,
+    CoNET_Data.profiles[0].privateKeyArmor
+  );
 
   CoNET_Data.profiles.forEach(async (n) => {
     n.keyID = n.keyID.toLocaleLowerCase();
