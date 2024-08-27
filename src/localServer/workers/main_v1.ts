@@ -3,7 +3,7 @@ const databaseName = "conet";
 //	******************************************************************
 const cCNTP_new_Addr =
   "0xa4b389994A591735332A67f3561D60ce96409347".toLocaleLowerCase();
-const faucet_addr = "0x9E70d462c434ca3f5aE567E9a406C08B2e25c066";
+const faucet_addr = "0x04CD419cb93FD4f70059cAeEe34f175459Ae1b6a";
 const profile_ver_addr =
   "0x556bB96fC4C1316B2e5CEaA133f5D4157Eb05681".toLowerCase();
 const CONET_Guardian_NodeInfoV4 = "0x264ea87162463165101A500a6Bf8755b91220350";
