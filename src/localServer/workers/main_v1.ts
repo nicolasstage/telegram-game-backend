@@ -2498,13 +2498,12 @@ const registerReferrer = async (cmd: worker_command) => {
     const ref = await CNTP_Referrals.getReferrer(profile.keyID);
     if (ref === "0x0000000000000000000000000000000000000000") {
       await CNTP_Referrals.addReferrer(referrer);
+      profile.referrer = referrer;
     }
   } catch (ex: any) {
     cmd.err = "FAILURE";
     return returnUUIDChannel(cmd);
   }
-
-  profile.referrer = referrer;
 
   storeSystemData();
 
