@@ -95,6 +95,10 @@ const processCmd = async (cmd: worker_command) => {
       return getRouletteResult(cmd);
     }
 
+    case "getTicketResult": {
+      return getTicketResult(cmd);
+    }
+
     case "startMining": {
       return startMining(cmd);
     }

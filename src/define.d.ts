@@ -189,6 +189,7 @@ declare type WorkerCommand =
   | "stopMining"
   | "registerReferrer"
   | "getRouletteResult"
+  | "getTicketResult"
   | "importWallet"
   | "clearStorage";
 
@@ -284,6 +285,11 @@ interface profile extends keyPair {
   nodeID?: number;
   nodeIP_address?: string;
   nodeRegion?: string;
+  tickets: conet_ticket;
+}
+
+interface conet_ticket {
+  balance: string;
 }
 
 interface publicProfile {
