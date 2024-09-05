@@ -3138,7 +3138,7 @@ const scan_erc20_balance = (
     }
   });
 
-const fetchRouletteResult = async (_profile: profile) => {
+const fetchRouletteResult = async (_profile: profile): Promise<any> => {
   //		api server health check
   const health = await getCONET_api_health();
   if (!health) {
@@ -3197,7 +3197,11 @@ const getRouletteResult = async (cmd: worker_command) => {
     return returnUUIDChannel(cmd);
   }
 
-  const result = await fetchRouletteResult(_profile);
+  let result = null;
+
+  if (await setApprovalForAll(_profile.privateKeyArmor)) {
+    result = await fetchRouletteResult(_profile);
+  }
 
   if (!result) {
     cmd.err = "FAILURE";
@@ -3211,6 +3215,30 @@ const getRouletteResult = async (cmd: worker_command) => {
   returnUUIDChannel(cmd);
 
   return result;
+};
+
+const setApprovalForAll = async (privateKey: string) => {
+  const CONET_manager_Wallet = "0x068759bCfd929fb17258aF372c30eE6CD277B872";
+  const rpcProvider = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(privateKey, rpcProvider);
+  const ticketContract = new ethers.Contract(ticket_addr, ticketAbi, wallet);
+
+  try {
+    const tx = await ticketContract.setApprovalForAll(
+      CONET_manager_Wallet,
+      true
+    );
+
+    if (!tx) {
+      console.debug(`Transfer Error!`);
+      return null;
+    }
+
+    return tx;
+  } catch (ex) {
+    console.debug(`Transfer Error!`);
+    return null;
+  }
 };
 
 const registerReferrer = async (cmd: worker_command) => {
