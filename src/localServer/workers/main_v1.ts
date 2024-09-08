@@ -6,7 +6,7 @@ const cCNTP_new_Addr =
 const faucet_addr =
   "0x04CD419cb93FD4f70059cAeEe34f175459Ae1b6a".toLocaleLowerCase();
 const ticket_addr =
-  "0x3933C2e84f7d90B60B00f9FeF8F640194C95A86c".toLocaleLowerCase();
+  "0x92a033A02fA92169046B91232195D0E82b8017AB".toLocaleLowerCase();
 const profile_ver_addr =
   "0x556bB96fC4C1316B2e5CEaA133f5D4157Eb05681".toLowerCase();
 const CONET_Guardian_NodeInfoV4 = "0x264ea87162463165101A500a6Bf8755b91220350";
@@ -29,6 +29,7 @@ let miningProfile: profile | null = null;
 let miningStatus: "STOP" | "RESTART" | "MINING" = "STOP";
 const api_endpoint = `https://api.conet.network/api/`;
 const apiv2_endpoint = `https://apiv2.conet.network/api/`;
+const apiv3_endpoint = `https://apiv3.conet.network/api/`;
 const ipfsEndpoint = `https://ipfs.conet.network/api/`;
 const conet_rpc = "https://rpc.conet.network";
 let authorization_key = "";
@@ -3161,7 +3162,7 @@ const fetchRouletteResult = async (_profile: profile): Promise<any> => {
   };
 
   //		lottery url
-  const url = `${apiv2_endpoint}lottery`;
+  const url = `${apiv3_endpoint}ticket-lottery`;
 
   try {
     const result = await postToEndpoint(url, true, sendData);
@@ -3197,24 +3198,27 @@ const getRouletteResult = async (cmd: worker_command) => {
     return returnUUIDChannel(cmd);
   }
 
-  let result = null;
+  await getFaucet(_profile.keyID, _profile.privateKeyArmor);
 
-  if (await setApprovalForAll(_profile.privateKeyArmor)) {
-    result = await fetchRouletteResult(_profile);
+  let rouletteResult = null;
+
+  if (await isApprovedForAll(_profile.privateKeyArmor)) {
+    rouletteResult = await fetchRouletteResult(_profile);
+  } else if (await setApprovalForAll(_profile.privateKeyArmor)) {
+    rouletteResult = await fetchRouletteResult(_profile);
   }
 
-  if (!result) {
+  if (!rouletteResult) {
     cmd.err = "FAILURE";
     return returnUUIDChannel(cmd);
   }
 
-  // log lottery result
-  logger(`testLottery got response ${result}`);
+  logger(`testLottery got response ${rouletteResult}`);
 
-  cmd.data[0] = result;
+  cmd.data[0] = rouletteResult;
   returnUUIDChannel(cmd);
 
-  return result;
+  return rouletteResult;
 };
 
 const setApprovalForAll = async (privateKey: string) => {
@@ -3235,6 +3239,25 @@ const setApprovalForAll = async (privateKey: string) => {
     }
 
     return tx;
+  } catch (ex) {
+    console.debug(`Transfer Error!`);
+    return null;
+  }
+};
+
+const isApprovedForAll = async (privateKey: string) => {
+  const CONET_manager_Wallet = "0x068759bcfd929fb17258af372c30ee6cd277b872";
+  const rpcProvider = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(privateKey, rpcProvider);
+  const ticketContract = new ethers.Contract(ticket_addr, ticketAbi, wallet);
+
+  try {
+    const isApproved = await ticketContract.isApprovedForAll(
+      wallet.address,
+      CONET_manager_Wallet
+    );
+
+    return isApproved;
   } catch (ex) {
     console.debug(`Transfer Error!`);
     return null;
@@ -3331,7 +3354,7 @@ const fetchTicketResult = async (_profile: profile) => {
   };
 
   //		lottery url
-  const url = `${apiv2_endpoint}ticket`;
+  const url = `${apiv3_endpoint}ticket`;
 
   try {
     const result = await postToEndpoint(url, true, sendData);
