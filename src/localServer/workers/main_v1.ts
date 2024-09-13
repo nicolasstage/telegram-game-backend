@@ -1631,7 +1631,7 @@ const ticketAbi = [
 ];
 
 const initV2 = async (profile) => {
-  const url = `${apiv2_endpoint}initV3`;
+  const url = `${apiv3_endpoint}initV3`;
   const result = await postToEndpoint(url, true, {
     walletAddress: profile.keyID,
   });
@@ -1921,7 +1921,7 @@ const updateProfilesVersionToIPFS: () => Promise<boolean> = () =>
   });
 
 const getCONET_api_health = async () => {
-  const url = `${apiv2_endpoint}health`;
+  const url = `${apiv3_endpoint}health`;
   try {
     const result: any = await postToEndpoint(url, false, null);
     return result?.health;
@@ -2297,7 +2297,7 @@ const getFaucet = async (keyId, privateKey: string) => {
       logger(`getFaucet Roop > 6 STOP process!`);
       return null;
     }
-    const url = `${apiv2_endpoint}conet-faucet`;
+    const url = `${apiv3_endpoint}conet-faucet`;
     let result;
     try {
       result = await postToEndpoint(url, true, { walletAddr: keyId });
