@@ -1631,7 +1631,7 @@ const ticketAbi = [
 ];
 
 const initV2 = async (profile) => {
-  const url = `${apiv3_endpoint}initV3`;
+  const url = `${apiv3_endpoint}initV2`;
   const result = await postToEndpoint(url, true, {
     walletAddress: profile.keyID,
   });
