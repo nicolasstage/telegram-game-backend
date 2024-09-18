@@ -187,6 +187,9 @@ declare type conetMiner = "Err_Server_Unreachable" | "Err_Multiple_IP";
 declare type WorkerCommand =
   | "startMining"
   | "stopMining"
+  | "checkTwitter"
+  | "checkTelegram"
+  | "checkSocialMedias"
   | "registerReferrer"
   | "getRouletteResult"
   | "getTicketResult"

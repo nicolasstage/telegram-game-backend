@@ -21,6 +21,8 @@ const Claimable_BlastUSDBv3 =
   "0x3258e9631ca4992F6674b114bd17c83CA30F734B".toLowerCase();
 const ReferralsAddressV3 =
   "0x1b104BCBa6870D518bC57B5AF97904fBD1030681".toLowerCase();
+const socialMediaAddress =
+  "0x9f2d92da19beA5B2aBc51e69841a2dD7077EAD8f".toLowerCase();
 //	******************************************************************
 
 let miningConn;
@@ -1630,6 +1632,303 @@ const ticketAbi = [
   },
 ];
 
+const socialMediaAbi = [
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "nickname",
+        "type": "string",
+      },
+      {
+        "internalType": "string",
+        "name": "bio",
+        "type": "string",
+      },
+      {
+        "internalType": "string",
+        "name": "imageUrl",
+        "type": "string",
+      },
+      {
+        "internalType": "string",
+        "name": "gateway",
+        "type": "string",
+      },
+    ],
+    "name": "addProfile",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address",
+      },
+    ],
+    "name": "adminList",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "addr",
+        "type": "address",
+      },
+      {
+        "internalType": "bool",
+        "name": "status",
+        "type": "bool",
+      },
+    ],
+    "name": "changeAddressInAdminlist",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_socialNFT",
+        "type": "uint256",
+      },
+      {
+        "internalType": "string",
+        "name": "socialName",
+        "type": "string",
+      },
+    ],
+    "name": "checkSocialNFT",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "socialTx",
+        "type": "bool",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256",
+      },
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32",
+      },
+    ],
+    "name": "credentialTx",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address",
+      },
+    ],
+    "name": "getProfile",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "nickname",
+            "type": "string",
+          },
+          {
+            "internalType": "string",
+            "name": "bio",
+            "type": "string",
+          },
+          {
+            "internalType": "string",
+            "name": "imageUrl",
+            "type": "string",
+          },
+          {
+            "internalType": "string",
+            "name": "gateway",
+            "type": "string",
+          },
+        ],
+        "internalType": "struct profileStruct",
+        "name": "_profile",
+        "type": "tuple",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address",
+      },
+    ],
+    "name": "getSocialUser",
+    "outputs": [
+      {
+        "internalType": "uint256[]",
+        "name": "socialNFTs",
+        "type": "uint256[]",
+      },
+      {
+        "internalType": "string[]",
+        "name": "socials",
+        "type": "string[]",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address",
+      },
+    ],
+    "name": "prfile",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "nickname",
+        "type": "string",
+      },
+      {
+        "internalType": "string",
+        "name": "bio",
+        "type": "string",
+      },
+      {
+        "internalType": "string",
+        "name": "imageUrl",
+        "type": "string",
+      },
+      {
+        "internalType": "string",
+        "name": "gateway",
+        "type": "string",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address",
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256",
+      },
+    ],
+    "name": "social",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address",
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256",
+      },
+    ],
+    "name": "socialNFT",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256",
+      },
+    ],
+    "stateMutability": "view",
+    "type": "function",
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_socialNFT",
+        "type": "uint256",
+      },
+      {
+        "internalType": "string",
+        "name": "socialAccount",
+        "type": "string",
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address",
+      },
+    ],
+    "name": "updateSocial",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "search",
+        "type": "uint256",
+      },
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function",
+  },
+];
+
 const initV2 = async (profile) => {
   const url = `${apiv3_endpoint}initV3`;
   const result = await postToEndpoint(url, true, {
@@ -2983,6 +3282,178 @@ const postToEndpointSSE = (
   }, 1000 * 45);
 
   return xhr;
+};
+
+const checkSocialMedias = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find((p) => p.keyID === profileKeyID);
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+  const providerConet = new ethers.JsonRpcProvider(conet_rpc);
+  const signer = new ethers.Wallet(_profile.privateKeyArmor, providerConet);
+  const tokenContract = new ethers.Contract(
+    socialMediaAddress,
+    socialMediaAbi,
+    signer
+  );
+  const socialMedias = await tokenContract.getSocialUser(_profile.keyID);
+  cmd.data[0] = socialMedias;
+
+  return returnUUIDChannel(cmd);
+};
+
+const checkTwitter = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find((p) => p.keyID === profileKeyID);
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+  const twitterUserName = cmd.data[1];
+  const randonWallet = ethers.Wallet.createRandom();
+  const message = JSON.stringify({
+    walletAddress: _profile.keyID.toLowerCase(),
+    data: [twitterUserName],
+  });
+  const messageHash = ethers.id(message);
+  const signMessage = CoNETModule.EthCrypto.sign(
+    _profile.privateKeyArmor,
+    messageHash
+  );
+
+  const sendData = {
+    message,
+    signMessage,
+  };
+  const url = "https://apiv3.conet.network/api/twitter-check-follow";
+  /*   try {
+    const result = await postToEndpoint(url, true, sendData);
+    logger(`testLottery got response ${result}`);
+    cmd.data[0] = result;
+    returnUUIDChannel(cmd);
+    return result;
+  } catch (ex) {
+    logger(`checkTwitter postToEndpoint [${url}] error! `, ex);
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  } */
+
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(sendData),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Erro: ${response.status} - ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then((checkedTwitter) => {
+      cmd.data[0] = checkedTwitter;
+      return returnUUIDChannel(cmd);
+    })
+    .catch((err) => {
+      console.error("Request error:", err);
+      return err.message;
+    });
+};
+
+const checkTelegram = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find((p) => p.keyID === profileKeyID);
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+  const telegramID = cmd.data[1];
+  const randonWallet = ethers.Wallet.createRandom();
+  const message = JSON.stringify({
+    walletAddress: _profile.keyID.toLowerCase(),
+    data: [telegramID],
+  });
+  const messageHash = ethers.id(message);
+  const signMessage = CoNETModule.EthCrypto.sign(
+    _profile.privateKeyArmor,
+    messageHash
+  );
+
+  const sendData = {
+    message,
+    signMessage,
+  };
+  const url = "https://apiv3.conet.network/api/tg-check-follow";
+
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(sendData),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Erro: ${response.status} - ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then((checkedTelegram) => {
+      cmd.data[0] = checkedTelegram;
+      return returnUUIDChannel(cmd);
+    })
+    .catch((err) => {
+      console.error("Request error:", err);
+      return err.message;
+    });
 };
 
 const _startMining = async (
