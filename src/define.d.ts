@@ -194,7 +194,9 @@ declare type WorkerCommand =
   | "getRouletteResult"
   | "getTicketResult"
   | "importWallet"
-  | "clearStorage";
+  | "clearStorage"
+  | "saveGameProfileInfo"
+  | "getGameProfileInfo";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"
@@ -289,6 +291,14 @@ interface profile extends keyPair {
   nodeIP_address?: string;
   nodeRegion?: string;
   tickets: conet_ticket;
+  game?: game | null;
+}
+
+interface game {
+  username?: string;
+  bio?: string;
+  imageUrl?: string;
+  gateway?: string;
 }
 
 interface conet_ticket {

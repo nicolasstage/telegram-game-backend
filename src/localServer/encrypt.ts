@@ -128,6 +128,10 @@ const processCmd = async (cmd: worker_command) => {
       return clearStorage(cmd);
     }
 
+    case "saveGameProfileInfo": {
+      return saveGameProfileInfo(cmd);
+    }
+
     default: {
       cmd.err = "INVALID_COMMAND";
       responseChannel.postMessage(JSON.stringify(cmd));

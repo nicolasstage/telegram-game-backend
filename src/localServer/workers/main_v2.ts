@@ -23,6 +23,8 @@ const ReferralsAddressV3 =
   "0x1b104BCBa6870D518bC57B5AF97904fBD1030681".toLowerCase();
 const socialMediaAddress =
   "0x9f2d92da19beA5B2aBc51e69841a2dD7077EAD8f".toLowerCase();
+const profileContractAddress =
+  "0x9f2d92da19beA5B2aBc51e69841a2dD7077EAD8f".toLowerCase();
 //	******************************************************************
 
 let miningConn;
@@ -1634,298 +1636,595 @@ const ticketAbi = [
 
 const socialMediaAbi = [
   {
-    "inputs": [],
-    "stateMutability": "nonpayable",
-    "type": "constructor",
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "string",
-        "name": "nickname",
-        "type": "string",
+        internalType: "string",
+        name: "nickname",
+        type: "string",
       },
       {
-        "internalType": "string",
-        "name": "bio",
-        "type": "string",
+        internalType: "string",
+        name: "bio",
+        type: "string",
       },
       {
-        "internalType": "string",
-        "name": "imageUrl",
-        "type": "string",
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
       },
       {
-        "internalType": "string",
-        "name": "gateway",
-        "type": "string",
+        internalType: "string",
+        name: "gateway",
+        type: "string",
       },
     ],
-    "name": "addProfile",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function",
+    name: "addProfile",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
-    "name": "adminList",
-    "outputs": [
+    name: "adminList",
+    outputs: [
       {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool",
+        internalType: "bool",
+        name: "",
+        type: "bool",
       },
     ],
-    "stateMutability": "view",
-    "type": "function",
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "addr",
-        "type": "address",
+        internalType: "address",
+        name: "addr",
+        type: "address",
       },
       {
-        "internalType": "bool",
-        "name": "status",
-        "type": "bool",
+        internalType: "bool",
+        name: "status",
+        type: "bool",
       },
     ],
-    "name": "changeAddressInAdminlist",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function",
+    name: "changeAddressInAdminlist",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_socialNFT",
-        "type": "uint256",
+        internalType: "uint256",
+        name: "_socialNFT",
+        type: "uint256",
       },
       {
-        "internalType": "string",
-        "name": "socialName",
-        "type": "string",
-      },
-    ],
-    "name": "checkSocialNFT",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "socialTx",
-        "type": "bool",
+        internalType: "string",
+        name: "socialName",
+        type: "string",
       },
     ],
-    "stateMutability": "view",
-    "type": "function",
+    name: "checkSocialNFT",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "socialTx",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256",
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
       {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32",
-      },
-    ],
-    "name": "credentialTx",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool",
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
       },
     ],
-    "stateMutability": "view",
-    "type": "function",
+    name: "credentialTx",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "user",
-        "type": "address",
+        internalType: "address",
+        name: "user",
+        type: "address",
       },
     ],
-    "name": "getProfile",
-    "outputs": [
+    name: "getProfile",
+    outputs: [
       {
-        "components": [
+        components: [
           {
-            "internalType": "string",
-            "name": "nickname",
-            "type": "string",
+            internalType: "string",
+            name: "nickname",
+            type: "string",
           },
           {
-            "internalType": "string",
-            "name": "bio",
-            "type": "string",
+            internalType: "string",
+            name: "bio",
+            type: "string",
           },
           {
-            "internalType": "string",
-            "name": "imageUrl",
-            "type": "string",
+            internalType: "string",
+            name: "imageUrl",
+            type: "string",
           },
           {
-            "internalType": "string",
-            "name": "gateway",
-            "type": "string",
+            internalType: "string",
+            name: "gateway",
+            type: "string",
           },
         ],
-        "internalType": "struct profileStruct",
-        "name": "_profile",
-        "type": "tuple",
+        internalType: "struct profileStruct",
+        name: "_profile",
+        type: "tuple",
       },
     ],
-    "stateMutability": "view",
-    "type": "function",
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "user",
-        "type": "address",
+        internalType: "address",
+        name: "user",
+        type: "address",
       },
     ],
-    "name": "getSocialUser",
-    "outputs": [
+    name: "getSocialUser",
+    outputs: [
       {
-        "internalType": "uint256[]",
-        "name": "socialNFTs",
-        "type": "uint256[]",
+        internalType: "uint256[]",
+        name: "socialNFTs",
+        type: "uint256[]",
       },
       {
-        "internalType": "string[]",
-        "name": "socials",
-        "type": "string[]",
+        internalType: "string[]",
+        name: "socials",
+        type: "string[]",
       },
     ],
-    "stateMutability": "view",
-    "type": "function",
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
     ],
-    "name": "prfile",
-    "outputs": [
+    name: "prfile",
+    outputs: [
       {
-        "internalType": "string",
-        "name": "nickname",
-        "type": "string",
+        internalType: "string",
+        name: "nickname",
+        type: "string",
       },
       {
-        "internalType": "string",
-        "name": "bio",
-        "type": "string",
+        internalType: "string",
+        name: "bio",
+        type: "string",
       },
       {
-        "internalType": "string",
-        "name": "imageUrl",
-        "type": "string",
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
       },
       {
-        "internalType": "string",
-        "name": "gateway",
-        "type": "string",
+        internalType: "string",
+        name: "gateway",
+        type: "string",
       },
     ],
-    "stateMutability": "view",
-    "type": "function",
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256",
-      },
-    ],
-    "name": "social",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string",
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
-    "stateMutability": "view",
-    "type": "function",
+    name: "social",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "",
-        "type": "address",
+        internalType: "address",
+        name: "",
+        type: "address",
       },
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256",
-      },
-    ],
-    "name": "socialNFT",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256",
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
       },
     ],
-    "stateMutability": "view",
-    "type": "function",
+    name: "socialNFT",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "_socialNFT",
-        "type": "uint256",
+        internalType: "uint256",
+        name: "_socialNFT",
+        type: "uint256",
       },
       {
-        "internalType": "string",
-        "name": "socialAccount",
-        "type": "string",
+        internalType: "string",
+        name: "socialAccount",
+        type: "string",
       },
       {
-        "internalType": "address",
-        "name": "to",
-        "type": "address",
-      },
-    ],
-    "name": "updateSocial",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "search",
-        "type": "uint256",
+        internalType: "address",
+        name: "to",
+        type: "address",
       },
     ],
-    "stateMutability": "nonpayable",
-    "type": "function",
+    name: "updateSocial",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "search",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
+
+const profileContractAbi = [
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "nickname",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "bio",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "gateway",
+        type: "string",
+      },
+    ],
+    name: "addProfile",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "adminList",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "status",
+        type: "bool",
+      },
+    ],
+    name: "changeAddressInAdminlist",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_socialNFT",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "socialName",
+        type: "string",
+      },
+    ],
+    name: "checkSocialNFT",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "socialTx",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    name: "credentialTx",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getProfile",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "string",
+            name: "nickname",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "bio",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "imageUrl",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "gateway",
+            type: "string",
+          },
+        ],
+        internalType: "struct profileStruct",
+        name: "_profile",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getSocialUser",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "socialNFTs",
+        type: "uint256[]",
+      },
+      {
+        internalType: "string[]",
+        name: "socials",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "prfile",
+    outputs: [
+      {
+        internalType: "string",
+        name: "nickname",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "bio",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "gateway",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "social",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "socialNFT",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_socialNFT",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "socialAccount",
+        type: "string",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "updateSocial",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "search",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
   },
 ];
 
@@ -2024,6 +2323,8 @@ const listenProfileVer = async () => {
       await getAllReferrer();
       leaderboards = await getLeaderboards();
 
+      await getAllGameProfileInfo();
+
       const cmd: channelWroker = {
         cmd: "profileVer",
         data: [profiles[0], leaderboards || null],
@@ -2091,6 +2392,7 @@ const storagePieceToIPFS = (
     const fileName = createFragmentFileName(ver, mnemonicPhrasePassword, index);
 
     const text = await getFragmentsFromPublic(fileName);
+
     if (text) {
       return resolve(true);
     }
@@ -2104,16 +2406,19 @@ const storagePieceToIPFS = (
         ? Math.round((targetFileLength - fragment.length) * Math.random())
         : 0;
     const dummyData = buffer.Buffer.allocUnsafeSlow(dummylength);
+
     const partEncryptPassword = encryptPasswordIssue(
       ver,
       mnemonicPhrasePassword,
       index
     );
+
     const localData = {
       data: fragment,
       totalFragment: totalFragment,
       index,
     };
+
     const IPFSData = {
       data: fragment,
       totalFragment: totalFragment,
@@ -3877,6 +4182,125 @@ const getTicketResult = async (cmd: worker_command) => {
   return result;
 };
 
+const saveGameProfileInfo = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find(
+    (p) => p.keyID.toLowerCase() === profileKeyID.toLowerCase()
+  );
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+
+  const gameProfileData = cmd.data[1];
+
+  if (!gameProfileData) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "gameProfileData parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(_profile.privateKeyArmor, provideNewCONET);
+  const profileContract = new ethers.Contract(
+    profileContractAddress,
+    profileContractAbi,
+    wallet
+  );
+
+  try {
+    await profileContract.addProfile(
+      gameProfileData?.nickname || "",
+      gameProfileData?.bio || "",
+      gameProfileData?.imageUrl || "",
+      gameProfileData?.gateway || ""
+    );
+  } catch (ex: any) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  cmd.data[0] = true;
+  returnUUIDChannel(cmd);
+
+  return true;
+};
+
+const getGameProfileInfo = async (
+  profileKeyID: string,
+  addressToSearch: string
+) => {
+  if (!CoNET_Data) {
+    return null;
+  }
+
+  if (!profileKeyID) {
+    return null;
+  }
+
+  let _profile = CoNET_Data?.profiles?.find(
+    (p) => p.keyID.toLowerCase() === profileKeyID.toLowerCase()
+  );
+
+  if (!_profile) {
+    return null;
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(_profile.privateKeyArmor, provideNewCONET);
+  const profileContract = new ethers.Contract(
+    profileContractAddress,
+    profileContractAbi,
+    wallet
+  );
+
+  let gameProfile = null;
+  try {
+    gameProfile = await profileContract.getProfile(addressToSearch);
+  } catch (ex: any) {
+    return null;
+  }
+
+  if (!gameProfile) return null;
+
+  return {
+    username: gameProfile[0],
+    bio: gameProfile[1],
+    imageUrl: gameProfile[2],
+    gateway: gameProfile[3],
+  };
+};
+
+const getAllGameProfileInfo = async () => {
+  if (!CoNET_Data) {
+    logger(`getAllProfileGameData Error! CoNET_Data empty Error!`);
+    return null;
+  }
+
+  const profiles = CoNET_Data.profiles;
+
+  profiles.forEach(async (profile) => {
+    profile.game = await getGameProfileInfo(profile.keyID, profile.keyID);
+  });
+
+  return profiles;
+};
+
 /**
  * Function used only for testing. It's started by the initEncryptWorker in encrypt.ts.
  * DO NOT USE IN PRODUCTION.
@@ -3905,4 +4329,24 @@ const testFunction = async () => {
   //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
   // };
   // await importWallet(cmd5);
+  // -------- saveGameProfileInfo --------
+  // const cmd5: worker_command = {
+  //   cmd: "saveGameProfileInfo",
+  //   data: [
+  //     "0xFaA48180274083D394ce4be2174CC41d72cD1164",
+  //     { nickname: "nicolas1", bio: "testing bio1", imageUrl: "", gateway: "" },
+  //   ],
+  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
+  // };
+  // await saveGameProfileInfo(cmd5);
+  // -------- getGameProfileInfo --------
+  // const cmd5: worker_command = {
+  //   cmd: "getGameProfileInfo",
+  //   data: [
+  //     "0xFaA48180274083D394ce4be2174CC41d72cD1164",
+  //     { addressToSearch: "0xFaA48180274083D394ce4be2174CC41d72cD1164" },
+  //   ],
+  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
+  // };
+  // await getGameProfileInfo(cmd5);
 };
