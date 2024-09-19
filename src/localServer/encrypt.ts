@@ -108,6 +108,18 @@ const processCmd = async (cmd: worker_command) => {
       return returnUUIDChannel(cmd);
     }
 
+    case "checkTwitter": {
+      return checkTwitter(cmd);
+    }
+
+    case "checkTelegram": {
+      return checkTelegram(cmd);
+    }
+
+    case "checkSocialMedias": {
+      return checkSocialMedias(cmd);
+    }
+
     case "registerReferrer": {
       return registerReferrer(cmd);
     }
