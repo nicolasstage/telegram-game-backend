@@ -4079,8 +4079,9 @@ const registerReferrer = async (cmd: worker_command) => {
   try {
     const ref = await CNTP_Referrals.getReferrer(profile.keyID);
     if (ref === "0x0000000000000000000000000000000000000000") {
-      await CNTP_Referrals.addReferrer(referrer);
-      profile.referrer = referrer;
+      const result = await _registerReferrer(CNTP_Referrals, profile, referrer);
+
+      if (result) profile.referrer = referrer;
     }
   } catch (ex: any) {
     cmd.err = "FAILURE";
@@ -4093,6 +4094,18 @@ const registerReferrer = async (cmd: worker_command) => {
   returnUUIDChannel(cmd);
 
   return referrer;
+};
+
+const _registerReferrer = async (CNTP_Referrals, profile, referrer) => {
+  try {
+    await CNTP_Referrals.addReferrer(referrer);
+
+    return true;
+  } catch (ex: any) {
+    setTimeout(() => {
+      return _registerReferrer(CNTP_Referrals, profile, referrer);
+    }, 5000);
+  }
 };
 
 const clearStorage = async (cmd: worker_command) => {
