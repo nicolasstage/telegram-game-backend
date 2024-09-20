@@ -3694,7 +3694,8 @@ const checkTwitter = async (cmd: worker_command) => {
     })
     .catch((err) => {
       console.error("Request error:", err);
-      return err.message;
+      cmd.err = "FAILURE";
+      return returnUUIDChannel(cmd);
     });
 };
 
@@ -3757,7 +3758,8 @@ const checkTelegram = async (cmd: worker_command) => {
     })
     .catch((err) => {
       console.error("Request error:", err);
-      return err.message;
+      cmd.err = "FAILURE";
+      return returnUUIDChannel(cmd);
     });
 };
 
