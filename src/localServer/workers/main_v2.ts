@@ -3,7 +3,10 @@ const databaseName = "conet";
 //	******************************************************************
 const cCNTP_new_Addr =
   "0xa4b389994A591735332A67f3561D60ce96409347".toLocaleLowerCase();
-const faucet_addr = "0x04CD419cb93FD4f70059cAeEe34f175459Ae1b6a";
+const faucet_addr =
+  "0x04CD419cb93FD4f70059cAeEe34f175459Ae1b6a".toLocaleLowerCase();
+const ticket_addr =
+  "0x92a033A02fA92169046B91232195D0E82b8017AB".toLocaleLowerCase();
 const profile_ver_addr =
   "0x556bB96fC4C1316B2e5CEaA133f5D4157Eb05681".toLowerCase();
 const CONET_Guardian_NodeInfoV4 = "0x264ea87162463165101A500a6Bf8755b91220350";
@@ -18,6 +21,10 @@ const Claimable_BlastUSDBv3 =
   "0x3258e9631ca4992F6674b114bd17c83CA30F734B".toLowerCase();
 const ReferralsAddressV3 =
   "0x1b104BCBa6870D518bC57B5AF97904fBD1030681".toLowerCase();
+const socialMediaAddress =
+  "0x9f2d92da19beA5B2aBc51e69841a2dD7077EAD8f".toLowerCase();
+const profileContractAddress =
+  "0x9f2d92da19beA5B2aBc51e69841a2dD7077EAD8f".toLowerCase();
 //	******************************************************************
 
 let miningConn;
@@ -26,6 +33,7 @@ let miningProfile: profile | null = null;
 let miningStatus: "STOP" | "RESTART" | "MINING" = "STOP";
 const api_endpoint = `https://api.conet.network/api/`;
 const apiv2_endpoint = `https://apiv2.conet.network/api/`;
+const apiv3_endpoint = `https://apiv3.conet.network/api/`;
 const ipfsEndpoint = `https://ipfs.conet.network/api/`;
 const conet_rpc = "https://rpc.conet.network";
 let authorization_key = "";
@@ -915,8 +923,1313 @@ const faucetAbi = [
   },
 ];
 
+const ticketAbi = [
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "balance",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "needed",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+    ],
+    name: "ERC1155InsufficientBalance",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "approver",
+        type: "address",
+      },
+    ],
+    name: "ERC1155InvalidApprover",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "idsLength",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "valuesLength",
+        type: "uint256",
+      },
+    ],
+    name: "ERC1155InvalidArrayLength",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+    ],
+    name: "ERC1155InvalidOperator",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "receiver",
+        type: "address",
+      },
+    ],
+    name: "ERC1155InvalidReceiver",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "sender",
+        type: "address",
+      },
+    ],
+    name: "ERC1155InvalidSender",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+    ],
+    name: "ERC1155MissingApprovalForAll",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "approved",
+        type: "bool",
+      },
+    ],
+    name: "ApprovalForAll",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "ids",
+        type: "uint256[]",
+      },
+      {
+        indexed: false,
+        internalType: "uint256[]",
+        name: "values",
+        type: "uint256[]",
+      },
+    ],
+    name: "TransferBatch",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "TransferSingle",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "string",
+        name: "value",
+        type: "string",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "URI",
+    type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "NFTsymbol",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "nodeId",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "_metadata",
+        type: "string",
+      },
+    ],
+    name: "_changeNodeMetadata",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "adminList",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "balanceOf",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "accounts",
+        type: "address[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "ids",
+        type: "uint256[]",
+      },
+    ],
+    name: "balanceOfBatch",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "",
+        type: "uint256[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+    ],
+    name: "burn",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "uint256[]",
+        name: "ids",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "values",
+        type: "uint256[]",
+      },
+    ],
+    name: "burnBatch",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "status",
+        type: "bool",
+      },
+    ],
+    name: "changeAddressInAdminlist",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "NFT_symbol",
+        type: "string",
+      },
+    ],
+    name: "changeNFT_symbol",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "exists",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "getNFTsymbol",
+    outputs: [
+      {
+        internalType: "string",
+        name: "NFT_symbol",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "account",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+    ],
+    name: "isApprovedForAll",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "metadata",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address[]",
+        name: "_to",
+        type: "address[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "_ids",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "values",
+        type: "uint256[]",
+      },
+    ],
+    name: "mintBatch",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "name",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256[]",
+        name: "ids",
+        type: "uint256[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "values",
+        type: "uint256[]",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "safeBatchTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "from",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "value",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes",
+        name: "data",
+        type: "bytes",
+      },
+    ],
+    name: "safeTransferFrom",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "operator",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "approved",
+        type: "bool",
+      },
+    ],
+    name: "setApprovalForAll",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "url",
+        type: "string",
+      },
+    ],
+    name: "setNFTUrl",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes4",
+        name: "interfaceId",
+        type: "bytes4",
+      },
+    ],
+    name: "supportsInterface",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "symbol",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "totalSupply",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "id",
+        type: "uint256",
+      },
+    ],
+    name: "totalSupply",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "uri",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+];
+
+const socialMediaAbi = [
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "nickname",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "bio",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "gateway",
+        type: "string",
+      },
+    ],
+    name: "addProfile",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "adminList",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "status",
+        type: "bool",
+      },
+    ],
+    name: "changeAddressInAdminlist",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_socialNFT",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "socialName",
+        type: "string",
+      },
+    ],
+    name: "checkSocialNFT",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "socialTx",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    name: "credentialTx",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getProfile",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "string",
+            name: "nickname",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "bio",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "imageUrl",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "gateway",
+            type: "string",
+          },
+        ],
+        internalType: "struct profileStruct",
+        name: "_profile",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getSocialUser",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "socialNFTs",
+        type: "uint256[]",
+      },
+      {
+        internalType: "string[]",
+        name: "socials",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "prfile",
+    outputs: [
+      {
+        internalType: "string",
+        name: "nickname",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "bio",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "gateway",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "social",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "socialNFT",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_socialNFT",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "socialAccount",
+        type: "string",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "updateSocial",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "search",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
+
+const profileContractAbi = [
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "nickname",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "bio",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "gateway",
+        type: "string",
+      },
+    ],
+    name: "addProfile",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "adminList",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "status",
+        type: "bool",
+      },
+    ],
+    name: "changeAddressInAdminlist",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_socialNFT",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "socialName",
+        type: "string",
+      },
+    ],
+    name: "checkSocialNFT",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "socialTx",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    name: "credentialTx",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getProfile",
+    outputs: [
+      {
+        components: [
+          {
+            internalType: "string",
+            name: "nickname",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "bio",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "imageUrl",
+            type: "string",
+          },
+          {
+            internalType: "string",
+            name: "gateway",
+            type: "string",
+          },
+        ],
+        internalType: "struct profileStruct",
+        name: "_profile",
+        type: "tuple",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "user",
+        type: "address",
+      },
+    ],
+    name: "getSocialUser",
+    outputs: [
+      {
+        internalType: "uint256[]",
+        name: "socialNFTs",
+        type: "uint256[]",
+      },
+      {
+        internalType: "string[]",
+        name: "socials",
+        type: "string[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "prfile",
+    outputs: [
+      {
+        internalType: "string",
+        name: "nickname",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "bio",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "imageUrl",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "gateway",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "social",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    name: "socialNFT",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_socialNFT",
+        type: "uint256",
+      },
+      {
+        internalType: "string",
+        name: "socialAccount",
+        type: "string",
+      },
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+    ],
+    name: "updateSocial",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "search",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+];
+
 const initV2 = async (profile) => {
-  const url = `${apiv2_endpoint}initV3`;
+  const url = `${apiv3_endpoint}initV3`;
   const result = await postToEndpoint(url, true, {
     walletAddress: profile.keyID,
   });
@@ -1006,8 +2319,11 @@ const listenProfileVer = async () => {
       }
 
       await getAllProfileAssetsBalance();
+      await getAllProfileTicketsBalance();
       await getAllReferrer();
       leaderboards = await getLeaderboards();
+
+      await getAllGameProfileInfo();
 
       const cmd: channelWroker = {
         cmd: "profileVer",
@@ -1076,6 +2392,7 @@ const storagePieceToIPFS = (
     const fileName = createFragmentFileName(ver, mnemonicPhrasePassword, index);
 
     const text = await getFragmentsFromPublic(fileName);
+
     if (text) {
       return resolve(true);
     }
@@ -1089,16 +2406,19 @@ const storagePieceToIPFS = (
         ? Math.round((targetFileLength - fragment.length) * Math.random())
         : 0;
     const dummyData = buffer.Buffer.allocUnsafeSlow(dummylength);
+
     const partEncryptPassword = encryptPasswordIssue(
       ver,
       mnemonicPhrasePassword,
       index
     );
+
     const localData = {
       data: fragment,
       totalFragment: totalFragment,
       index,
     };
+
     const IPFSData = {
       data: fragment,
       totalFragment: totalFragment,
@@ -1205,7 +2525,7 @@ const updateProfilesVersionToIPFS: () => Promise<boolean> = () =>
   });
 
 const getCONET_api_health = async () => {
-  const url = `${apiv2_endpoint}health`;
+  const url = `${apiv3_endpoint}health`;
   try {
     const result: any = await postToEndpoint(url, false, null);
     return result?.health;
@@ -1538,6 +2858,42 @@ const getAllProfileAssetsBalance = () =>
     return resolve(true);
   });
 
+const getAllProfileTicketsBalance = () =>
+  new Promise(async (resolve) => {
+    if (!CoNET_Data?.profiles) {
+      logger(`getAllProfileTicketsBalance Error! CoNET_Data.profiles empty!`);
+      return resolve(false);
+    }
+
+    const runningList: any = [];
+
+    for (let profile of CoNET_Data.profiles) {
+      runningList.push(getProfileTicketsBalance(profile));
+    }
+
+    await Promise.all(runningList);
+
+    return resolve(true);
+  });
+
+const getProfileTicketsBalance = async (profile: profile) => {
+  const provide = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(profile.privateKeyArmor, provide);
+  const ticketSmartContract = new ethers.Contract(
+    ticket_addr,
+    ticketAbi,
+    wallet
+  );
+
+  try {
+    const ticketBalance = await ticketSmartContract.balanceOf(profile.keyID, 1);
+    console.log(`ticket balance = ${ticketBalance}`);
+    profile.tickets = { balance: ticketBalance.toString() };
+  } catch (ex) {
+    console.log(ex);
+  }
+};
+
 const getFaucet = async (keyId, privateKey: string) => {
   if (CoNET_Data?.profiles[0].tokens.conet.balance === "0") {
     if (++getFaucetRoop > 6) {
@@ -1545,7 +2901,7 @@ const getFaucet = async (keyId, privateKey: string) => {
       logger(`getFaucet Roop > 6 STOP process!`);
       return null;
     }
-    const url = `${apiv2_endpoint}conet-faucet`;
+    const url = `${apiv3_endpoint}conet-faucet`;
     let result;
     try {
       result = await postToEndpoint(url, true, { walletAddr: keyId });
@@ -1975,6 +3331,7 @@ const createOrGetWallet = async () => {
       privateKeyArmor: acc.signingKey.privateKey,
       hdPath: acc.path,
       index: acc.index,
+      tickets: { balance: "0" },
     };
 
     CoNET_Data = {
@@ -2056,6 +3413,7 @@ const importWallet = async (cmd: worker_command) => {
     },
     referrer: null,
     tokens: initProfileTokens(),
+    tickets: { balance: "0" },
   };
 
   CoNET_Data.profiles = [profile];
@@ -2231,6 +3589,180 @@ const postToEndpointSSE = (
   return xhr;
 };
 
+const checkSocialMedias = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find((p) => p.keyID === profileKeyID);
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+  const providerConet = new ethers.JsonRpcProvider(conet_rpc);
+  const signer = new ethers.Wallet(_profile.privateKeyArmor, providerConet);
+  const tokenContract = new ethers.Contract(
+    socialMediaAddress,
+    socialMediaAbi,
+    signer
+  );
+  const socialMedias = await tokenContract.getSocialUser(_profile.keyID);
+  cmd.data[0] = socialMedias;
+
+  return returnUUIDChannel(cmd);
+};
+
+const checkTwitter = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find((p) => p.keyID === profileKeyID);
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+  const twitterUserName = cmd.data[1];
+  const randonWallet = ethers.Wallet.createRandom();
+  const message = JSON.stringify({
+    walletAddress: _profile.keyID.toLowerCase(),
+    data: [twitterUserName],
+  });
+  const messageHash = ethers.id(message);
+  const signMessage = CoNETModule.EthCrypto.sign(
+    _profile.privateKeyArmor,
+    messageHash
+  );
+
+  const sendData = {
+    message,
+    signMessage,
+  };
+  const url = "https://apiv3.conet.network/api/twitter-check-follow";
+  /*   try {
+    const result = await postToEndpoint(url, true, sendData);
+    logger(`testLottery got response ${result}`);
+    cmd.data[0] = result;
+    returnUUIDChannel(cmd);
+    return result;
+  } catch (ex) {
+    logger(`checkTwitter postToEndpoint [${url}] error! `, ex);
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  } */
+
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(sendData),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Erro: ${response.status} - ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then((checkedTwitter) => {
+      cmd.data[0] = checkedTwitter;
+      return returnUUIDChannel(cmd);
+    })
+    .catch((err) => {
+      console.error("Request error:", err);
+      cmd.err = "FAILURE";
+      return returnUUIDChannel(cmd);
+    });
+};
+
+const checkTelegram = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find((p) => p.keyID === profileKeyID);
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+  const telegramID = cmd.data[1];
+  const randonWallet = ethers.Wallet.createRandom();
+  const message = JSON.stringify({
+    walletAddress: _profile.keyID.toLowerCase(),
+    data: [telegramID],
+  });
+  const messageHash = ethers.id(message);
+  const signMessage = CoNETModule.EthCrypto.sign(
+    _profile.privateKeyArmor,
+    messageHash
+  );
+
+  const sendData = {
+    message,
+    signMessage,
+  };
+  const url = "https://apiv3.conet.network/api/tg-check-follow";
+
+  return fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(sendData),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Erro: ${response.status} - ${response.statusText}`);
+      }
+      return response.json();
+    })
+    .then((checkedTelegram) => {
+      cmd.data[0] = checkedTelegram;
+      return returnUUIDChannel(cmd);
+    })
+    .catch((err) => {
+      console.error("Request error:", err);
+      cmd.err = "FAILURE";
+      return returnUUIDChannel(cmd);
+    });
+};
+
 const _startMining = async (
   profile: profile,
   cmd: worker_command | null = null
@@ -2385,7 +3917,7 @@ const scan_erc20_balance = (
     }
   });
 
-const fetchRouletteResult = async (_profile: profile) => {
+const fetchRouletteResult = async (_profile: profile): Promise<any> => {
   //		api server health check
   const health = await getCONET_api_health();
   if (!health) {
@@ -2408,7 +3940,7 @@ const fetchRouletteResult = async (_profile: profile) => {
   };
 
   //		lottery url
-  const url = `${apiv2_endpoint}lottery`;
+  const url = `${apiv3_endpoint}ticket-lottery`;
 
   try {
     const result = await postToEndpoint(url, true, sendData);
@@ -2444,20 +3976,70 @@ const getRouletteResult = async (cmd: worker_command) => {
     return returnUUIDChannel(cmd);
   }
 
-  const result = await fetchRouletteResult(_profile);
+  await getFaucet(_profile.keyID, _profile.privateKeyArmor);
 
-  if (!result) {
+  let rouletteResult = null;
+
+  if (await isApprovedForAll(_profile.privateKeyArmor)) {
+    rouletteResult = await fetchRouletteResult(_profile);
+  } else if (await setApprovalForAll(_profile.privateKeyArmor)) {
+    rouletteResult = await fetchRouletteResult(_profile);
+  }
+
+  if (!rouletteResult) {
     cmd.err = "FAILURE";
     return returnUUIDChannel(cmd);
   }
 
-  // log lottery result
-  logger(`testLottery got response ${result}`);
+  logger(`testLottery got response ${rouletteResult}`);
 
-  cmd.data[0] = result;
+  cmd.data[0] = rouletteResult;
   returnUUIDChannel(cmd);
 
-  return result;
+  return rouletteResult;
+};
+
+const setApprovalForAll = async (privateKey: string) => {
+  const CONET_manager_Wallet = "0x068759bCfd929fb17258aF372c30eE6CD277B872";
+  const rpcProvider = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(privateKey, rpcProvider);
+  const ticketContract = new ethers.Contract(ticket_addr, ticketAbi, wallet);
+
+  try {
+    const tx = await ticketContract.setApprovalForAll(
+      CONET_manager_Wallet,
+      true
+    );
+
+    if (!tx) {
+      console.debug(`Transfer Error!`);
+      return null;
+    }
+
+    return tx;
+  } catch (ex) {
+    console.debug(`Transfer Error!`);
+    return null;
+  }
+};
+
+const isApprovedForAll = async (privateKey: string) => {
+  const CONET_manager_Wallet = "0x068759bcfd929fb17258af372c30ee6cd277b872";
+  const rpcProvider = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(privateKey, rpcProvider);
+  const ticketContract = new ethers.Contract(ticket_addr, ticketAbi, wallet);
+
+  try {
+    const isApproved = await ticketContract.isApprovedForAll(
+      wallet.address,
+      CONET_manager_Wallet
+    );
+
+    return isApproved;
+  } catch (ex) {
+    console.debug(`Transfer Error!`);
+    return null;
+  }
 };
 
 const registerReferrer = async (cmd: worker_command) => {
@@ -2497,8 +4079,9 @@ const registerReferrer = async (cmd: worker_command) => {
   try {
     const ref = await CNTP_Referrals.getReferrer(profile.keyID);
     if (ref === "0x0000000000000000000000000000000000000000") {
-      await CNTP_Referrals.addReferrer(referrer);
-      profile.referrer = referrer;
+      const result = await _registerReferrer(CNTP_Referrals, profile, referrer);
+
+      if (result) profile.referrer = referrer;
     }
   } catch (ex: any) {
     cmd.err = "FAILURE";
@@ -2513,6 +4096,18 @@ const registerReferrer = async (cmd: worker_command) => {
   return referrer;
 };
 
+const _registerReferrer = async (CNTP_Referrals, profile, referrer) => {
+  try {
+    await CNTP_Referrals.addReferrer(referrer);
+
+    return true;
+  } catch (ex: any) {
+    setTimeout(() => {
+      return _registerReferrer(CNTP_Referrals, profile, referrer);
+    }, 5000);
+  }
+};
+
 const clearStorage = async (cmd: worker_command) => {
   const database = new PouchDB(databaseName, { auto_compaction: true });
   await database.destroy((err, response) => {
@@ -2525,6 +4120,200 @@ const clearStorage = async (cmd: worker_command) => {
     }
   });
   returnUUIDChannel(cmd);
+};
+
+const fetchTicketResult = async (_profile: profile) => {
+  //		api server health check
+  const health = await getCONET_api_health();
+  if (!health) {
+    return null;
+  }
+
+  //		make post obj
+  const message = JSON.stringify({ walletAddress: _profile.keyID });
+
+  //		use private key to sign post obj
+  const messageHash = ethers.id(message);
+  const signMessage = CoNETModule.EthCrypto.sign(
+    _profile.privateKeyArmor,
+    messageHash
+  );
+
+  const sendData = {
+    message,
+    signMessage,
+  };
+
+  //		lottery url
+  const url = `${apiv3_endpoint}ticket`;
+
+  try {
+    const result = await postToEndpoint(url, true, sendData);
+    return result;
+  } catch (ex) {
+    logger(`fetchTicketResult postToEndpoint [${url}] error! `, ex);
+    return null;
+  }
+};
+
+const getTicketResult = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find(
+    (p) => p.keyID.toLowerCase() === profileKeyID.toLowerCase()
+  );
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+
+  const result = await fetchTicketResult(_profile);
+
+  if (!result) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  // log lottery result
+  logger(`testTicket got response ${result}`);
+
+  cmd.data[0] = result;
+  returnUUIDChannel(cmd);
+
+  return result;
+};
+
+const saveGameProfileInfo = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find(
+    (p) => p.keyID.toLowerCase() === profileKeyID.toLowerCase()
+  );
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+
+  const gameProfileData = cmd.data[1];
+
+  if (!gameProfileData) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "gameProfileData parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(_profile.privateKeyArmor, provideNewCONET);
+  const profileContract = new ethers.Contract(
+    profileContractAddress,
+    profileContractAbi,
+    wallet
+  );
+
+  try {
+    await profileContract.addProfile(
+      gameProfileData?.nickname || "",
+      gameProfileData?.bio || "",
+      gameProfileData?.imageUrl || "",
+      gameProfileData?.gateway || ""
+    );
+  } catch (ex: any) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  cmd.data[0] = true;
+  returnUUIDChannel(cmd);
+
+  return true;
+};
+
+const getGameProfileInfo = async (
+  profileKeyID: string,
+  addressToSearch: string
+) => {
+  if (!CoNET_Data) {
+    return null;
+  }
+
+  if (!profileKeyID) {
+    return null;
+  }
+
+  let _profile = CoNET_Data?.profiles?.find(
+    (p) => p.keyID.toLowerCase() === profileKeyID.toLowerCase()
+  );
+
+  if (!_profile) {
+    return null;
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const wallet = new ethers.Wallet(_profile.privateKeyArmor, provideNewCONET);
+  const profileContract = new ethers.Contract(
+    profileContractAddress,
+    profileContractAbi,
+    wallet
+  );
+
+  let gameProfile = null;
+  try {
+    gameProfile = await profileContract.getProfile(addressToSearch);
+  } catch (ex: any) {
+    return null;
+  }
+
+  if (!gameProfile) return null;
+
+  return {
+    username: gameProfile[0],
+    bio: gameProfile[1],
+    imageUrl: gameProfile[2],
+    gateway: gameProfile[3],
+  };
+};
+
+const getAllGameProfileInfo = async () => {
+  if (!CoNET_Data) {
+    logger(`getAllProfileGameData Error! CoNET_Data empty Error!`);
+    return null;
+  }
+
+  const profiles = CoNET_Data.profiles;
+
+  profiles.forEach(async (profile) => {
+    profile.game = await getGameProfileInfo(profile.keyID, profile.keyID);
+  });
+
+  return profiles;
 };
 
 /**
@@ -2555,4 +4344,24 @@ const testFunction = async () => {
   //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
   // };
   // await importWallet(cmd5);
+  // -------- saveGameProfileInfo --------
+  // const cmd5: worker_command = {
+  //   cmd: "saveGameProfileInfo",
+  //   data: [
+  //     "0xFaA48180274083D394ce4be2174CC41d72cD1164",
+  //     { nickname: "nicolas1", bio: "testing bio1", imageUrl: "", gateway: "" },
+  //   ],
+  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
+  // };
+  // await saveGameProfileInfo(cmd5);
+  // -------- getGameProfileInfo --------
+  // const cmd5: worker_command = {
+  //   cmd: "getGameProfileInfo",
+  //   data: [
+  //     "0xFaA48180274083D394ce4be2174CC41d72cD1164",
+  //     { addressToSearch: "0xFaA48180274083D394ce4be2174CC41d72cD1164" },
+  //   ],
+  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
+  // };
+  // await getGameProfileInfo(cmd5);
 };

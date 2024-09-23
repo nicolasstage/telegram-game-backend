@@ -187,10 +187,16 @@ declare type conetMiner = "Err_Server_Unreachable" | "Err_Multiple_IP";
 declare type WorkerCommand =
   | "startMining"
   | "stopMining"
+  | "checkTwitter"
+  | "checkTelegram"
+  | "checkSocialMedias"
   | "registerReferrer"
   | "getRouletteResult"
+  | "getTicketResult"
   | "importWallet"
-  | "clearStorage";
+  | "clearStorage"
+  | "saveGameProfileInfo"
+  | "getGameProfileInfo";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"
@@ -284,6 +290,19 @@ interface profile extends keyPair {
   nodeID?: number;
   nodeIP_address?: string;
   nodeRegion?: string;
+  tickets: conet_ticket;
+  game?: game | null;
+}
+
+interface game {
+  username?: string;
+  bio?: string;
+  imageUrl?: string;
+  gateway?: string;
+}
+
+interface conet_ticket {
+  balance: string;
 }
 
 interface publicProfile {

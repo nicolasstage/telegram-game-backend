@@ -48,7 +48,7 @@ const initEncryptWorker = async () => {
 
   self.importScripts(baseUrl + "util.js");
   self.importScripts(baseUrl + "CoNETModule.js");
-  self.importScripts(baseUrl + "main_v1.js");
+  self.importScripts(baseUrl + "main_v2.js");
 
   channelLoading.postMessage(90);
   channel.addEventListener("message", channelWorkerDoCommand);
@@ -95,6 +95,10 @@ const processCmd = async (cmd: worker_command) => {
       return getRouletteResult(cmd);
     }
 
+    case "getTicketResult": {
+      return getTicketResult(cmd);
+    }
+
     case "startMining": {
       return startMining(cmd);
     }
@@ -104,12 +108,28 @@ const processCmd = async (cmd: worker_command) => {
       return returnUUIDChannel(cmd);
     }
 
+    case "checkTwitter": {
+      return checkTwitter(cmd);
+    }
+
+    case "checkTelegram": {
+      return checkTelegram(cmd);
+    }
+
+    case "checkSocialMedias": {
+      return checkSocialMedias(cmd);
+    }
+
     case "registerReferrer": {
       return registerReferrer(cmd);
     }
 
     case "clearStorage": {
       return clearStorage(cmd);
+    }
+
+    case "saveGameProfileInfo": {
+      return saveGameProfileInfo(cmd);
     }
 
     default: {
