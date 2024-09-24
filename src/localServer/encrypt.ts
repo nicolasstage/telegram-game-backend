@@ -97,6 +97,10 @@ const processCmd = async (cmd: worker_command) => {
       return getRouletteResult(cmd);
     }
 
+    case "unlockTicket": {
+      return unlockTicket(cmd);
+    }
+
     case "getTicketResult": {
       return getTicketResult(cmd);
     }

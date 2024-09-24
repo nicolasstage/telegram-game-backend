@@ -198,7 +198,8 @@ declare type WorkerCommand =
   | "importWallet"
   | "clearStorage"
   | "saveGameProfileInfo"
-  | "getGameProfileInfo";
+  | "getGameProfileInfo"
+  | "unlockTicket";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"
@@ -293,6 +294,7 @@ interface profile extends keyPair {
   nodeIP_address?: string;
   nodeRegion?: string;
   tickets: conet_ticket;
+  isTicketUnlocked?: boolean;
   game?: game | null;
 }
 

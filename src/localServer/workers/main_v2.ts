@@ -148,8 +148,12 @@ const listenProfileVer = async () => {
       await getAllProfileTicketsBalance();
       await getAllReferrer();
       leaderboards = await getLeaderboards();
-
+      const isTicketUnlocked = await isApprovedForAll(
+        profiles[0].privateKeyArmor
+      );
       await getAllGameProfileInfo();
+
+      profiles[0].isTicketUnlocked = isTicketUnlocked;
 
       const cmd: channelWroker = {
         cmd: "profileVer",
@@ -1846,9 +1850,7 @@ const getRouletteResult = async (cmd: worker_command) => {
 
   let rouletteResult = null;
 
-  if (await isApprovedForAll(_profile.privateKeyArmor)) {
-    rouletteResult = await fetchRouletteResult(_profile);
-  } else if (await setApprovalForAll(_profile.privateKeyArmor)) {
+  if (_profile?.isTicketUnlocked) {
     rouletteResult = await fetchRouletteResult(_profile);
   }
 
@@ -1863,6 +1865,61 @@ const getRouletteResult = async (cmd: worker_command) => {
   returnUUIDChannel(cmd);
 
   return rouletteResult;
+};
+
+const unlockTicket = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find(
+    (p) => p.keyID.toLowerCase() === profileKeyID.toLowerCase()
+  );
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+
+  const isUnlockProcessStarted = await _unlockTicket(_profile);
+
+  logger(`unlockticket got response ${isUnlockProcessStarted}`);
+
+  cmd.data[0] = isUnlockProcessStarted;
+  returnUUIDChannel(cmd);
+
+  return isUnlockProcessStarted;
+};
+
+const _unlockTicket = async (_profile: profile) => {
+  try {
+    const isUnlockProcessStarted = await setApprovalForAll(
+      _profile.privateKeyArmor
+    );
+
+    if (!isUnlockProcessStarted) {
+      setTimeout(() => {
+        return _unlockTicket(_profile);
+      }, 5000);
+    }
+
+    return true;
+  } catch (ex) {
+    setTimeout(() => {
+      return _unlockTicket(_profile);
+    }, 5000);
+  }
 };
 
 const setApprovalForAll = async (privateKey: string) => {
