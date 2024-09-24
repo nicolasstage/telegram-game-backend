@@ -39,6 +39,8 @@ type nodes_info = {
   region: string;
   armoredPublicKey: string;
   publicKeyObj?: any;
+  domain?: string;
+  nftNumber: number;
 };
 
 interface connect_imap_reqponse {
@@ -455,7 +457,9 @@ type SICommandObj_Command =
   | "connecting"
   | "SaaS_Proxy"
   | "SaaS_Sock5"
-  | "SaaS_Sock5_Data_Entry";
+  | "SaaS_Sock5_Data_Entry"
+  | "mining"
+  | "mining_validator";
 
 interface SICommandObj {
   command: SICommandObj_Command;
@@ -476,13 +480,15 @@ interface ethSignedObj {
   v: string;
 }
 
-// interface CoNETCash_authorized {
-// 	id: string
-// 	to: string
-// 	amount: number
-// 	type: 'USDC'
-// 	from: string
-// }
+interface nodeResponse {
+  status: number;
+  epoch: number;
+  hash: string;
+  rate: string;
+  nodeWallet: string;
+  currentCCNTP?: string;
+  minerResponseHash?: string;
+}
 
 type clientProfile = {
   armoredPublicKey: string;

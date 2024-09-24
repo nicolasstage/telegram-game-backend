@@ -48,6 +48,8 @@ const initEncryptWorker = async () => {
 
   self.importScripts(baseUrl + "util.js");
   self.importScripts(baseUrl + "CoNETModule.js");
+  self.importScripts(baseUrl + "miningV2.js");
+  self.importScripts(baseUrl + "smartContractABI.js");
   self.importScripts(baseUrl + "main_v2.js");
 
   channelLoading.postMessage(90);
