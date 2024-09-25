@@ -73,6 +73,7 @@ const _startMiningV2 = async (
   await getAllNodes();
   miningAddress = profile.keyID.toLowerCase();
   const connectNode = getRandomNodeV2();
+
   if (!connectNode) {
     if (cmd) {
       cmd.err = "FAILURE";
@@ -150,8 +151,8 @@ const _startMiningV2 = async (
 
         return;
       }
-
-      response.rate = parseFloat(response.rate).toFixed(10);
+      const kk = parseFloat(response.rate);
+      response.rate = isNaN(kk) ? "" : kk.toFixed(8);
       response.currentCCNTP = (
         parseFloat(profile.tokens.cCNTP.balance || "0") - cCNTPcurrentTotal
       ).toFixed(8);
@@ -171,6 +172,7 @@ const _startMiningV2 = async (
         logger(`_startMiningV2 Error! getRandomNodeV2 return null!`);
         return;
       }
+
       validator(response, profile, entryNode);
     }
   );
