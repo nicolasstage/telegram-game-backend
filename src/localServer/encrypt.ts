@@ -106,12 +106,11 @@ const processCmd = async (cmd: worker_command) => {
     }
 
     case "startMining": {
-      return startMiningV2(cmd);
+      return startMiningV1(cmd);
     }
 
     case "stopMining": {
-      miningStatus = "STOP";
-      return returnUUIDChannel(cmd);
+      return stopMiningV1(cmd);
     }
 
     case "checkTwitter": {

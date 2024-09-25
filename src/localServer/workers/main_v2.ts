@@ -1592,7 +1592,13 @@ const checkTelegram = async (cmd: worker_command) => {
     });
 };
 
-const _startMining = async (
+const stopMiningV1 = async (cmd: worker_command) => {
+  miningConn.abort();
+  miningStatus = "STOP";
+  return returnUUIDChannel(cmd);
+};
+
+const _startMiningV1 = async (
   profile: profile,
   cmd: worker_command | null = null
 ) => {
@@ -1621,7 +1627,7 @@ const _startMining = async (
         case "RESTART": {
           miningConn.abort();
           miningStatus = "MINING";
-          return _startMining(profile);
+          return _startMiningV1(profile);
         }
 
         case "STOP": {
@@ -1689,7 +1695,7 @@ const _startMining = async (
  * @param cmd - data[0] is a conet profile
  * @returns
  */
-const startMining = async (cmd: worker_command) => {
+const startMiningV1 = async (cmd: worker_command) => {
   if (!CoNET_Data) {
     cmd.err = "FAILURE";
     cmd.data[0] = "CoNET_Data not found";
@@ -1722,7 +1728,7 @@ const startMining = async (cmd: worker_command) => {
   storeSystemData();
 
   miningStatus = "MINING";
-  return await _startMining(_profile, cmd);
+  return await _startMiningV1(_profile, cmd);
 };
 
 /**
