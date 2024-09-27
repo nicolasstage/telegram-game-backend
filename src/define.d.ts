@@ -199,7 +199,8 @@ declare type WorkerCommand =
   | "clearStorage"
   | "saveGameProfileInfo"
   | "getGameProfileInfo"
-  | "unlockTicket";
+  | "unlockTicket"
+  | "claimDailyReward";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"

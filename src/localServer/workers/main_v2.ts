@@ -134,6 +134,73 @@ const getProfileCurrentWeek = async (keyID) => {
 
   return result.toArray();
 };
+
+const claimDailyReward = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find(
+    (p) => p.keyID.toLowerCase() === profileKeyID.toLowerCase()
+  );
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+
+  const message = JSON.stringify({
+    walletAddress: _profile.keyID.toLowerCase(),
+  });
+
+  const messageHash = ethers.id(message);
+  const signMessage = CoNETModule.EthCrypto.sign(
+    _profile.privateKeyArmor,
+    messageHash
+  );
+
+  const sendData = {
+    message,
+    signMessage,
+  };
+
+  const url = apiv3_endpoint + "dailyClick";
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(sendData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro: ${response.status} - ${response.statusText}`);
+    }
+
+    const dailyRewardResult = await response.json();
+
+    cmd.data[0] = dailyRewardResult;
+
+    return returnUUIDChannel(cmd);
+  } catch (error) {
+    console.error("Request error:", error);
+    cmd.err = "FAILURE";
+
+    return returnUUIDChannel(cmd);
+  }
 };
 
 const getAllReferrer = async () => {
@@ -255,8 +322,7 @@ const listenProfileVer = async () => {
 
       const todayDayOfWeek = await getTodayDayOfWeek();
 
-      if (todayDayOfWeek)
-        dailyClaimInfo.todayDayOfWeek = parseInt(todayDayOfWeek);
+      if (todayDayOfWeek) dailyClaimInfo.todayDayOfWeek = todayDayOfWeek;
 
       profiles[0].isTicketUnlocked = isTicketUnlocked;
 
@@ -1580,12 +1646,13 @@ const checkTwitter = async (cmd: worker_command) => {
     cmd.data[0] = "Profile not found in CoNET_Data";
     return returnUUIDChannel(cmd);
   }
+
   const twitterUserName = cmd.data[1];
-  const randonWallet = ethers.Wallet.createRandom();
   const message = JSON.stringify({
     walletAddress: _profile.keyID.toLowerCase(),
     data: [twitterUserName],
   });
+
   const messageHash = ethers.id(message);
   const signMessage = CoNETModule.EthCrypto.sign(
     _profile.privateKeyArmor,
@@ -1596,18 +1663,8 @@ const checkTwitter = async (cmd: worker_command) => {
     message,
     signMessage,
   };
+
   const url = "https://apiv3.conet.network/api/twitter-check-follow";
-  /*   try {
-    const result = await postToEndpoint(url, true, sendData);
-    logger(`testLottery got response ${result}`);
-    cmd.data[0] = result;
-    returnUUIDChannel(cmd);
-    return result;
-  } catch (ex) {
-    logger(`checkTwitter postToEndpoint [${url}] error! `, ex);
-    cmd.err = "FAILURE";
-    return returnUUIDChannel(cmd);
-  } */
 
   return fetch(url, {
     method: "POST",
@@ -1656,11 +1713,11 @@ const checkTelegram = async (cmd: worker_command) => {
     return returnUUIDChannel(cmd);
   }
   const telegramID = cmd.data[1];
-  const randonWallet = ethers.Wallet.createRandom();
   const message = JSON.stringify({
     walletAddress: _profile.keyID.toLowerCase(),
     data: [telegramID],
   });
+
   const messageHash = ethers.id(message);
   const signMessage = CoNETModule.EthCrypto.sign(
     _profile.privateKeyArmor,

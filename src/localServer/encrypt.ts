@@ -113,6 +113,10 @@ const processCmd = async (cmd: worker_command) => {
       return stopMiningV1(cmd);
     }
 
+    case "claimDailyReward": {
+      return claimDailyReward(cmd);
+    }
+
     case "checkTwitter": {
       return checkTwitter(cmd);
     }
