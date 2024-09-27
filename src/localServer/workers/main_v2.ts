@@ -78,7 +78,9 @@ const getTodayDayOfWeek = async () => {
 
   const result = await CNTP_Referrals.getDaysOfThisWeek();
 
-  return result;
+  // contract returns number counting 0 as Sunday
+  // subtract 1 to get Monday as the first day of the week
+  return parseInt(result) - 1;
 };
 
 const getTodayAsset = async () => {
@@ -105,6 +107,12 @@ const getAllProfilesCurrentWeek = async () => {
 
   // TODO: modify to do it for all profiles in Conet_Data
   const result = await getProfileCurrentWeek(CoNET_Data.profiles[0].keyID);
+
+  // contract returns values counting 0 as Sunday and the first element of the array
+  // move Sunday to the end of the array
+  const removedItem = result.shift();
+  result.push(removedItem);
+
   CoNET_Data.profiles[0].dailyClaimWeek = result;
 
   return CoNET_Data.profiles;
@@ -124,7 +132,8 @@ const getProfileCurrentWeek = async (keyID) => {
 
   const result = await dailyCheckInContract.getUserCurrentWeek(keyID);
 
-  return result;
+  return result.toArray();
+};
 };
 
 const getAllReferrer = async () => {
