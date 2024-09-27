@@ -296,6 +296,7 @@ interface profile extends keyPair {
   tickets: conet_ticket;
   isTicketUnlocked?: boolean;
   game?: game | null;
+  dailyClaimWeek?: any;
 }
 
 interface game {

@@ -163,3 +163,7 @@ const fetchWithTimeout = async (resource, options: any) => {
 
   return response;
 };
+
+const formatToken = (token: number) => {
+  return (token * Math.pow(10, -18)).toFixed(6);
+};

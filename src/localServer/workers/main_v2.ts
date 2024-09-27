@@ -28,6 +28,8 @@ const socialMediaAddress =
   "0x9f2d92da19beA5B2aBc51e69841a2dD7077EAD8f".toLowerCase();
 const profileContractAddress =
   "0x9f2d92da19beA5B2aBc51e69841a2dD7077EAD8f".toLowerCase();
+const dailyCheckInContractAddress =
+  "0x6d97059A01bF489Ad1b28a4E3591069b5eE12a23".toLowerCase();
 //	******************************************************************
 
 let miningConn;
@@ -60,6 +62,69 @@ const initV2 = async (profile) => {
     walletAddress: profile.keyID,
   });
   logger(result);
+};
+
+const getTodayDayOfWeek = async () => {
+  if (!CoNET_Data?.profiles) {
+    return null;
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const CNTP_Referrals = new ethers.Contract(
+    dailyCheckInContractAddress,
+    dailyCheckInAbi,
+    provideNewCONET
+  );
+
+  const result = await CNTP_Referrals.getDaysOfThisWeek();
+
+  return result;
+};
+
+const getTodayAsset = async () => {
+  if (!CoNET_Data?.profiles) {
+    return null;
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const CNTP_Referrals = new ethers.Contract(
+    dailyCheckInContractAddress,
+    dailyCheckInAbi,
+    provideNewCONET
+  );
+
+  const result = await CNTP_Referrals.getTodaysAsset();
+
+  return result;
+};
+
+const getAllProfilesCurrentWeek = async () => {
+  if (!CoNET_Data?.profiles) {
+    return null;
+  }
+
+  // TODO: modify to do it for all profiles in Conet_Data
+  const result = await getProfileCurrentWeek(CoNET_Data.profiles[0].keyID);
+  CoNET_Data.profiles[0].dailyClaimWeek = result;
+
+  return CoNET_Data.profiles;
+};
+
+const getProfileCurrentWeek = async (keyID) => {
+  if (!CoNET_Data?.profiles) {
+    return null;
+  }
+
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const dailyCheckInContract = new ethers.Contract(
+    dailyCheckInContractAddress,
+    dailyCheckInAbi,
+    provideNewCONET
+  );
+
+  const result = await dailyCheckInContract.getUserCurrentWeek(keyID);
+
+  return result;
 };
 
 const getAllReferrer = async () => {
@@ -147,17 +212,48 @@ const listenProfileVer = async () => {
       await getAllProfileAssetsBalance();
       await getAllProfileTicketsBalance();
       await getAllReferrer();
+      await getAllGameProfileInfo();
+      await getAllProfilesCurrentWeek();
+
       leaderboards = await getLeaderboards();
+
       const isTicketUnlocked = await isApprovedForAll(
         profiles[0].privateKeyArmor
       );
-      await getAllGameProfileInfo();
+
+      const dailyClaimInfo: { todayAsset: any; todayDayOfWeek: number | null } =
+        {
+          todayAsset: {},
+          todayDayOfWeek: null,
+        };
+      let assetName = "";
+
+      const todayAsset = await getTodayAsset();
+
+      if (todayAsset[0].toLowerCase() === cCNTP_new_Addr.toLowerCase())
+        assetName = "cntp";
+      else if (todayAsset[0].toLowerCase() === ticket_addr.toLowerCase())
+        assetName = "ticket";
+
+      const formattedTodayAssetQuantity = parseInt(todayAsset[1]);
+      const formattedNftNumber = parseInt(todayAsset[2]);
+
+      dailyClaimInfo.todayAsset = {
+        asset: assetName,
+        quantity: formattedTodayAssetQuantity,
+        nft_number: formattedNftNumber,
+      };
+
+      const todayDayOfWeek = await getTodayDayOfWeek();
+
+      if (todayDayOfWeek)
+        dailyClaimInfo.todayDayOfWeek = parseInt(todayDayOfWeek);
 
       profiles[0].isTicketUnlocked = isTicketUnlocked;
 
       const cmd: channelWroker = {
         cmd: "profileVer",
-        data: [profiles[0], leaderboards || null],
+        data: [profiles[0], leaderboards || null, dailyClaimInfo],
       };
 
       sendState("toFrontEnd", cmd);
