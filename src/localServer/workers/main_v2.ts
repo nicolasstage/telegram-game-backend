@@ -1624,6 +1624,76 @@ const checkSocialMedias = async (cmd: worker_command) => {
   return returnUUIDChannel(cmd);
 };
 
+const checkPartner = async (cmd: worker_command) => {
+  if (!CoNET_Data) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "CoNET_Data not found";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileKeyID = cmd.data[0];
+
+  if (!profileKeyID) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "ProfileKeyID parameter not received from frontend";
+    return returnUUIDChannel(cmd);
+  }
+
+  let _profile = CoNET_Data?.profiles?.find((p) => p.keyID === profileKeyID);
+
+  if (!_profile) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Profile not found in CoNET_Data";
+    return returnUUIDChannel(cmd);
+  }
+
+  //		api server health check
+  const health = await getCONET_api_health();
+  if (!health) {
+    return null;
+  }
+
+  //		make post obj
+  const message = JSON.stringify({
+    walletAddress: _profile.keyID,
+    data: [cmd.data[1]],
+  });
+
+  //		use private key to sign post obj
+  const messageHash = ethers.id(message);
+  const signMessage = CoNETModule.EthCrypto.sign(
+    _profile.privateKeyArmor,
+    messageHash
+  );
+
+  const sendData = {
+    message,
+    signMessage,
+  };
+
+  const url = `${apiv3_endpoint}socialTask`;
+
+  let result: any = null;
+
+  try {
+    result = await postToEndpoint(url, true, sendData);
+  } catch (ex) {
+    logger(`checkPartner postToEndpoint [${url}] error! `, ex);
+  }
+
+  if (!result) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  logger(`dailyTask got response ${result}`);
+
+  cmd.data[0] = result;
+  returnUUIDChannel(cmd);
+
+  return result;
+};
+
 const checkTwitter = async (cmd: worker_command) => {
   if (!CoNET_Data) {
     cmd.err = "FAILURE";

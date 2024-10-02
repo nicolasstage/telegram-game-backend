@@ -192,6 +192,7 @@ declare type WorkerCommand =
   | "checkTwitter"
   | "checkTelegram"
   | "checkSocialMedias"
+  | "checkPartner"
   | "registerReferrer"
   | "getRouletteResult"
   | "getTicketResult"

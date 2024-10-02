@@ -129,6 +129,10 @@ const processCmd = async (cmd: worker_command) => {
       return checkSocialMedias(cmd);
     }
 
+    case "checkPartner": {
+      return checkPartner(cmd);
+    }
+
     case "registerReferrer": {
       return registerReferrer(cmd);
     }
