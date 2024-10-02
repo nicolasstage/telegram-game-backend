@@ -322,7 +322,8 @@ const listenProfileVer = async () => {
 
       const todayDayOfWeek = await getTodayDayOfWeek();
 
-      if (todayDayOfWeek) dailyClaimInfo.todayDayOfWeek = todayDayOfWeek;
+      if (todayDayOfWeek?.toString())
+        dailyClaimInfo.todayDayOfWeek = todayDayOfWeek;
 
       profiles[0].isTicketUnlocked = isTicketUnlocked;
 
