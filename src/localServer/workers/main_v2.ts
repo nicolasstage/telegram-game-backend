@@ -65,22 +65,11 @@ const initV2 = async (profile) => {
 };
 
 const getTodayDayOfWeek = async () => {
-  if (!CoNET_Data?.profiles) {
-    return null;
-  }
-
-  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
-  const CNTP_Referrals = new ethers.Contract(
-    dailyCheckInContractAddress,
-    dailyCheckInAbi,
-    provideNewCONET
-  );
-
-  const result = await CNTP_Referrals.getDaysOfThisWeek();
+  const result = new Date().getUTCDay();
 
   // contract returns number counting 0 as Sunday
   // subtract 1 to get Monday as the first day of the week
-  return parseInt(result) - 1;
+  return result === 0 ? 6 : result - 1;
 };
 
 const getTodayAsset = async () => {
