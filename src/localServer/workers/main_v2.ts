@@ -29,7 +29,7 @@ const socialMediaAddress =
 const profileContractAddress =
   "0x9f2d92da19beA5B2aBc51e69841a2dD7077EAD8f".toLowerCase();
 const dailyCheckInContractAddress =
-  "0x6d97059A01bF489Ad1b28a4E3591069b5eE12a23".toLowerCase();
+  "0xDCe3FAE41Eb95eA3Be59Ca334f340bdd1799aA29".toLowerCase();
 //	******************************************************************
 
 let miningConn;

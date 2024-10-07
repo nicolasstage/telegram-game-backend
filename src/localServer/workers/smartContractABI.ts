@@ -3747,6 +3747,13 @@ const dailyCheckInAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "updateDay",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",
