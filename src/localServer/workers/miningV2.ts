@@ -82,6 +82,10 @@ const _startMiningV2 = async (
     return;
   }
 
+  if (!profile?.pgpKey) {
+    profile.pgpKey = await createGPGKey("", "", "");
+  }
+
   const index = Guardian_Nodes.findIndex(
     (n) => n.ip_addr === connectNode.ip_addr
   );
