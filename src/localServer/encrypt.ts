@@ -106,7 +106,7 @@ const processCmd = async (cmd: worker_command) => {
     }
 
     case "startMining": {
-      return startMiningV1(cmd);
+      return startMiningV2(cmd);
     }
 
     case "stopMining": {
