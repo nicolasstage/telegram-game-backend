@@ -493,6 +493,8 @@ interface nodeResponse {
   nodeWallet: string;
   currentCCNTP?: string;
   minerResponseHash?: string;
+  userWallets: string[];
+  nodeWallets?: string[];
 }
 
 type clientProfile = {

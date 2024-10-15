@@ -1311,6 +1311,9 @@ const getLeaderboards = async () => {
 const createOrGetWallet = async () => {
   if (!CoNET_Data?.profiles) {
     const acc = createKeyHDWallets();
+
+    const key = await createGPGKey("", "", "");
+
     const profile: profile = {
       tokens: initProfileTokens(),
       publicKeyArmor: acc.publicKey,
@@ -1318,6 +1321,10 @@ const createOrGetWallet = async () => {
       isPrimary: true,
       referrer: null,
       isNode: false,
+      pgpKey: {
+        privateKeyArmor: key.privateKey,
+        publicKeyArmor: key.publicKey,
+      },
       privateKeyArmor: acc.signingKey.privateKey,
       hdPath: acc.path,
       index: acc.index,

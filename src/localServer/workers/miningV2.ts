@@ -1,4 +1,4 @@
-const maxScanNodesNumber = 20;
+const maxScanNodesNumber = 80;
 let Guardian_Nodes: nodes_info[] = [];
 let miningAddress = "";
 let getAllNodesProcess = false;
@@ -203,6 +203,8 @@ const validator = async (
   }
   const wallet = new ethers.Wallet(profile.privateKeyArmor);
   response.minerResponseHash = await wallet.signMessage(response.hash);
+  //	clean data
+  response.userWallets = response.nodeWallets = [];
   const request = await ceateMininngValidator(profile, sentryNode, response);
   if (!request) {
     return logger(`ceateMininngValidator got null Error!`);
