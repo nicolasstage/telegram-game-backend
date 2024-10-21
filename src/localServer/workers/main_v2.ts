@@ -1209,7 +1209,7 @@ const storagePieceToLocal = (newVer = "-1") => {
       CoNET_Data.profiles[0].pgpKey = firstProfilePgpKey;
     }
 
-    const profilesClearText = JSON.stringify(CoNET_Data.profiles);
+    const profilesClearText = JSON.stringify(CoNET_Data.profiles[0]);
     const chearTextFragments = splitTextLimitLength(
       profilesClearText,
       fileLength
@@ -2522,4 +2522,127 @@ const testFunction = async () => {
   //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
   // };
   // await getGameProfileInfo(cmd5);
+};
+
+const transferToken = async (cmd: worker_command) => {
+  const [amount, sourceProfileKeyID, assetName, toAddress] = cmd.data;
+  if (!assetName || !toAddress || !amount || !sourceProfileKeyID) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+  if (!getAddress(toAddress) && !getAddress(sourceProfileKeyID)) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+  const profiles = CoNET_Data?.profiles;
+  if (!profiles) {
+    cmd.err = "NOT_READY";
+    return returnUUIDChannel(cmd);
+  }
+  const profileIndex = profiles.findIndex(
+    (n) => n.keyID.toLowerCase() === sourceProfileKeyID.toLowerCase()
+  );
+  if (profileIndex < 0) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const sourceProfile = profiles[profileIndex];
+  sendState("beforeunload", true);
+  const kk = await CONET_transfer_token(
+    sourceProfile,
+    toAddress,
+    amount,
+    assetName
+  );
+  sendState("beforeunload", false);
+
+  if (!!kk !== true) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  if (sourceProfile.keyID.toLowerCase() == miningAddress) {
+    cCNTPcurrentTotal -= amount;
+  }
+
+  const cmd1 = {
+    cmd: "tokenTransferStatus",
+    data: [4, kk],
+  };
+  sendState("toFrontEnd", cmd1);
+  return returnUUIDChannel(cmd);
+};
+
+const estimateGas = async (cmd: worker_command) => {
+  const [amount, sourceProfileKeyID, assetName, toAddress] = cmd.data;
+
+  if (!assetName || !toAddress || !amount || !sourceProfileKeyID) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profiles = CoNET_Data?.profiles;
+
+  if (!profiles) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profile = getProfileFromKeyID(sourceProfileKeyID);
+
+  if (!profile || !profile?.tokens) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const asset = profile.tokens[assetName];
+
+  if (!profile.privateKeyArmor || !asset) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const data: any = await getEstimateGasForTokenTransfer(
+    profile.privateKeyArmor,
+    assetName,
+    amount,
+    toAddress
+  );
+
+  cmd.data = [data.gasPrice, data.fee, true, 5000];
+  return returnUUIDChannel(cmd);
+};
+
+const getNativeBalance = async (cmd: worker_command) => {
+  const [sourceProfileKeyID] = cmd.data;
+
+  if (!sourceProfileKeyID) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
+
+  cmd.data[0] = await scanCONETHolesky(sourceProfileKeyID, provideCONET);
+
+  return returnUUIDChannel(cmd);
+};
+
+const getAddress = (addr) => {
+  let ret = "";
+  try {
+    ret = ethers.getAddress(addr);
+  } catch (ex) {
+    return ret;
+  }
+  return ret;
+};
+
+const isAddress = (cmd: worker_command) => {
+  console.log("isAddress backend called");
+  const address = cmd.data[0];
+  const ret = getAddress(address);
+  cmd.data = [ret === "" ? false : true];
+  return returnUUIDChannel(cmd);
 };

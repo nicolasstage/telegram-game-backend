@@ -4,6 +4,7 @@ declare const scrypt: any;
 declare const async: any;
 declare const JSZip: any;
 declare const PouchDB: any;
+declare const ethers: any;
 
 interface imapConnect {
   imapServer: string;
@@ -201,7 +202,11 @@ declare type WorkerCommand =
   | "saveGameProfileInfo"
   | "getGameProfileInfo"
   | "unlockTicket"
-  | "claimDailyReward";
+  | "transferToken"
+  | "estimateGas"
+  | "claimDailyReward"
+  | "getNativeBalance"
+  | "isAddress";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"

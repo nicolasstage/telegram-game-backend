@@ -2,7 +2,6 @@
  * 				CONET Platform
  *
  */
-declare const ethers;
 
 const workerReadyChannel = "conet-platform";
 const workerProcessChannel = "workerLoader";
@@ -143,6 +142,22 @@ const processCmd = async (cmd: worker_command) => {
 
     case "saveGameProfileInfo": {
       return saveGameProfileInfo(cmd);
+    }
+
+    case "transferToken": {
+      return await transferToken(cmd);
+    }
+
+    case "estimateGas": {
+      return await estimateGas(cmd);
+    }
+
+    case "getNativeBalance": {
+      return await getNativeBalance(cmd);
+    }
+
+    case "isAddress": {
+      return isAddress(cmd);
     }
 
     default: {

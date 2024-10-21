@@ -1,3 +1,22 @@
+// Contract Addresses
+const blast_usdb_contract = "0x4300000000000000000000000000000000000003";
+const bnb_usdt_contract = "0x55d398326f99059fF775485246999027B3197955";
+const eth_usdt_contract = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+const Arbitrum_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
+const conet_dWETH = "0x84b6d6A6675F830c8385f022Aefc9e3846A89D3B";
+const conet_dUSDT = "0x0eD55798a8b9647f7908c72a0Ce844ad47274422";
+const conet_dWBNB = "0xd8b094E91c552c623bc054085871F6c1CA3E5cAd";
+const bsc_mainchain = "https://bsc-dataseed.binance.org/";
+const Arbitrum_One_RPC = "https://arb1.arbitrum.io/rpc";
+
+const _ethRpc = [
+  "https://rpc.ankr.com/eth",
+  "https://eth.llamarpc.com",
+  "https://ethereum-rpc.publicnode.com",
+];
+
+const ethRpc = () => _ethRpc[Math.round(Math.random() * (_ethRpc.length - 1))];
+
 const XMLHttpRequestTimeout = 30 * 1000;
 
 const CoNETModule: CoNET_Module = {
@@ -167,3 +186,258 @@ const fetchWithTimeout = async (resource, options: any) => {
 const formatToken = (token: number) => {
   return (token * Math.pow(10, -18)).toFixed(6);
 };
+
+const CONET_transfer_token = async (profile, to, _total, tokenName) => {
+  const cryptoAsset = profile.tokens[tokenName];
+  if (!cryptoAsset || !CoNET_Data?.profiles) {
+    const cmd1 = {
+      cmd: "tokenTransferStatus",
+      data: [-1],
+    };
+    sendState("toFrontEnd", cmd1);
+    return false;
+  }
+  if (
+    parseFloat(cryptoAsset.balance) - _total < 0 ||
+    !profile.privateKeyArmor
+  ) {
+    const cmd1 = {
+      cmd: "tokenTransferStatus",
+      data: [-1],
+    };
+    sendState("toFrontEnd", cmd1);
+    return false;
+  }
+  const cmd1 = {
+    cmd: "tokenTransferStatus",
+    data: [1],
+  };
+  sendState("toFrontEnd", cmd1);
+  const tx: any = await transferAssetToCONET_wallet(
+    profile.privateKeyArmor,
+    cryptoAsset,
+    _total.toString(),
+    to
+  );
+  if (typeof tx === "boolean") {
+    const cmd1 = {
+      cmd: "tokenTransferStatus",
+      data: [-1],
+    };
+
+    sendState("toFrontEnd", cmd1);
+    return false;
+  }
+
+  const cmd2 = {
+    cmd: "tokenTransferStatus",
+    data: [2],
+  };
+  sendState("toFrontEnd", cmd2);
+
+  const kk1 = {
+    status: "Confirmed",
+    Nonce: tx.nonce,
+    to: tx.to,
+    transactionFee: stringFix(
+      ethers.formatEther(parseFloat(tx.gasUsed) * parseFloat(tx.gasPrice))
+    ),
+    gasUsed: tx.gasUsed.toString(),
+    isSend: true,
+    value: parseEther(_total.toString(), cryptoAsset.name).toString(),
+    time: new Date().toISOString(),
+    transactionHash: tx.hash,
+  };
+
+  cryptoAsset.history.push(kk1);
+  // await storagePieceToLocal();
+  await storeSystemData();
+  needUpgradeVer = epoch + 25;
+  return tx;
+};
+
+const transferAssetToCONET_wallet = (
+  privateKey,
+  token,
+  transferNumber,
+  toAddr
+) =>
+  new Promise(async (resolve) => {
+    const provide = new ethers.JsonRpcProvider(getNetwork(token.name));
+    const wallet = new ethers.Wallet(privateKey, provide);
+    const smartContractAddr = getAssetERC20Address(token.name);
+    if (smartContractAddr) {
+      const transferObj = new ethers.Contract(
+        smartContractAddr,
+        blast_CNTPAbi,
+        wallet
+      );
+      const amount = parseEther(transferNumber, token.name);
+      try {
+        // const k1 = await transferObj.approve(toAddr, amount)
+        const k2 = await transferObj.transfer(toAddr, amount);
+        const k3 = await k2.wait();
+        return resolve(k3);
+      } catch (ex) {
+        return resolve(false);
+      }
+    } else {
+      const tx = {
+        to: toAddr,
+        value: ethers.parseEther(transferNumber),
+      };
+      try {
+        return resolve(await wallet.sendTransaction(tx));
+      } catch (ex) {
+        return resolve(false);
+      }
+    }
+  });
+
+const getAssetERC20Address = (assetName) => {
+  switch (assetName) {
+    case "usdt": {
+      return eth_usdt_contract;
+    }
+    case "wusdt": {
+      return bnb_usdt_contract;
+    }
+    case "usdb": {
+      return blast_usdb_contract;
+    }
+    case "dWBNB": {
+      return conet_dWBNB;
+    }
+    case "dUSDT": {
+      return conet_dUSDT;
+    }
+    case "dWETH": {
+      return conet_dWETH;
+    }
+    case "cCNTP": {
+      return cCNTP_new_Addr;
+    }
+    case "arb_usdt": {
+      return Arbitrum_USDT;
+    }
+    default: {
+      return ``;
+    }
+  }
+};
+
+const parseEther = (ether, tokenName) => {
+  switch (tokenName) {
+    case "arb_usdt":
+    case "usdt": {
+      return ethers.parseUnits(ether, 6);
+    }
+
+    default: {
+      return ethers.parseEther(ether);
+    }
+  }
+};
+
+const getNetwork = (networkName) => {
+  switch (networkName) {
+    // case 'usdb':
+    // case 'blastETH':
+    //     {
+    //         return blast_mainnet()
+    //     }
+    case "cCNTP":
+    case "cUSDB":
+    case "cCNTP":
+    case "cUSDT":
+    case "cBNBUSDT":
+    case "conet":
+    case "cntpb": {
+      return conet_rpc;
+    }
+    case "usdt":
+    case "eth": {
+      return ethRpc();
+    }
+    case "wusdt":
+    case "bnb": {
+      return bsc_mainchain;
+    }
+    case "arb_eth":
+    case "arb_usdt": {
+      return Arbitrum_One_RPC;
+    }
+    // case 'cntp':
+    //     {
+    //         return blast_sepoliaRpc
+    //     }
+    default: {
+      return "";
+    }
+  }
+};
+
+const stringFix = (num) => {
+  const index = num.indexOf(".");
+  if (index < 0) {
+    return num;
+  }
+  return num.substring(0, index + 12);
+};
+
+const getProfileFromKeyID = (keyID: string) => {
+  if (!CoNET_Data?.profiles) {
+    return null;
+  }
+  const profileIndex = CoNET_Data.profiles.findIndex((n) => n.keyID === keyID);
+  if (profileIndex < 0) {
+    return null;
+  }
+  return CoNET_Data.profiles[profileIndex];
+};
+
+const getEstimateGasForTokenTransfer = (
+  privateKey,
+  asset,
+  _transferNumber,
+  toAddr
+) =>
+  new Promise(async (resolve) => {
+    const provide = new ethers.JsonRpcProvider(getNetwork(asset));
+    const wallet = new ethers.Wallet(privateKey, provide);
+    let _fee;
+    const transferNumber = parseEther(_transferNumber, asset);
+    const smartContractAddr = getAssetERC20Address(asset);
+    if (smartContractAddr) {
+      const estGas = new ethers.Contract(
+        smartContractAddr,
+        blast_CNTPAbi,
+        wallet
+      );
+      try {
+        _fee = await estGas.transfer.estimateGas(toAddr, transferNumber);
+      } catch (ex) {
+        return resolve(false);
+      }
+    } else {
+      const tx = {
+        to: toAddr,
+        value: transferNumber,
+      };
+      try {
+        _fee = await wallet.estimateGas(tx);
+      } catch (ex) {
+        return resolve(false);
+      }
+    }
+    try {
+      const Fee = await provide.getFeeData();
+      const gasPrice = ethers.formatUnits(Fee.gasPrice, "gwei");
+      const fee = parseFloat(ethers.formatEther(_fee * Fee.gasPrice)).toFixed(
+        8
+      );
+      return resolve({ gasPrice, fee });
+    } catch (ex) {
+      return resolve(false);
+    }
+  });
