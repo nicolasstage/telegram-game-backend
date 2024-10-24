@@ -39,6 +39,7 @@ let miningStatus: "STOP" | "RESTART" | "MINING" = "STOP";
 const api_endpoint = `https://api.conet.network/api/`;
 const apiv2_endpoint = `https://apiv2.conet.network/api/`;
 const apiv3_endpoint = `https://apiv3.conet.network/api/`;
+const apiv4_endpoint = `https://apiv4.conet.network/api/`;
 const ipfsEndpoint = `https://ipfs.conet.network/api/`;
 const conet_rpc = "https://rpc.conet.network";
 let authorization_key = "";
@@ -891,7 +892,7 @@ const getFaucet = async (keyId, privateKey: string) => {
       logger(`getFaucet Roop > 6 STOP process!`);
       return null;
     }
-    const url = `${apiv3_endpoint}conet-faucet`;
+    const url = `${apiv4_endpoint}conet-faucet`;
     let result;
     try {
       result = await postToEndpoint(url, true, { walletAddr: keyId });
