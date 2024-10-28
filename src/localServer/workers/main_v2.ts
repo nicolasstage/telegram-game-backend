@@ -1625,8 +1625,14 @@ const checkSocialMedias = async (cmd: worker_command) => {
     socialMediaAbi,
     signer
   );
-  const socialMedias = await tokenContract.getSocialUser(_profile.keyID);
-  cmd.data[0] = socialMedias;
+
+  try {
+    const socialMedias = await tokenContract.getSocialUser(_profile.keyID);
+    cmd.data[0] = socialMedias;
+  } catch (ex) {
+    cmd.err = "FAILURE";
+    cmd.data[0] = "Error calling the contract method getSocialUser";
+  }
 
   return returnUUIDChannel(cmd);
 };
@@ -2180,13 +2186,13 @@ const setApprovalForAll = async (privateKey: string) => {
     );
 
     if (!tx) {
-      console.debug(`Transfer Error!`);
+      console.debug(`Error in setting NFT approval`);
       return null;
     }
 
     return tx;
   } catch (ex) {
-    console.debug(`Transfer Error!`);
+    console.debug(`Error in setting NFT approval`);
     return null;
   }
 };

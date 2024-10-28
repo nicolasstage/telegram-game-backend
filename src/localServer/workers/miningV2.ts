@@ -8,22 +8,27 @@ const getAllNodes = async () => {
   if (getAllNodesProcess) {
     return;
   }
+
   getAllNodesProcess = true;
+  let scanNodes = 0;
+
   const GuardianNodes = new ethers.Contract(
     CONET_Guardian_PlanV7,
     guardian_erc1155,
     provideCONET
   );
-  let scanNodes = 0;
+
   try {
     const maxNodes: BigInt = await GuardianNodes.currentNodeID();
     scanNodes = parseInt(maxNodes.toString());
   } catch (ex) {
     return logger(`getAllNodes currentNodeID Error`, ex);
   }
+
   if (!scanNodes) {
     return logger(`getAllNodes STOP scan because scanNodes == 0`);
   }
+
   Guardian_Nodes = [];
   for (let i = 0; i < maxScanNodesNumber; i++) {
     Guardian_Nodes.push({
@@ -35,20 +40,30 @@ const getAllNodes = async () => {
       nftNumber: 100 + i,
     });
   }
+
   const GuardianNodesInfo = new ethers.Contract(
     CONET_Guardian_NodeInfoV6,
     CONET_Guardian_NodeInfo_ABI,
     provideCONET
   );
 
-  await async.mapLimit(Guardian_Nodes, 5, async (n: nodes_info, next) => {
-    const nodeInfo = await GuardianNodesInfo.getNodeInfoById(n.nftNumber);
-    n.region = nodeInfo.regionName;
-    n.ip_addr = nodeInfo.ipaddress;
-    n.armoredPublicKey = buffer.Buffer.from(nodeInfo.pgp, "base64").toString();
-    const pgpKey1 = await openpgp.readKey({ armoredKey: n.armoredPublicKey });
-    n.domain = pgpKey1.getKeyIDs()[1].toHex().toUpperCase() + ".conet.network";
-  });
+  try {
+    await async.mapLimit(Guardian_Nodes, 5, async (n: nodes_info, next) => {
+      const nodeInfo = await GuardianNodesInfo.getNodeInfoById(n.nftNumber);
+      n.region = nodeInfo.regionName;
+      n.ip_addr = nodeInfo.ipaddress;
+      n.armoredPublicKey = buffer.Buffer.from(
+        nodeInfo.pgp,
+        "base64"
+      ).toString();
+      const pgpKey1 = await openpgp.readKey({ armoredKey: n.armoredPublicKey });
+      n.domain =
+        pgpKey1.getKeyIDs()[1].toHex().toUpperCase() + ".conet.network";
+    });
+  } catch (ex) {
+    console.log("getAllNodes error: ", ex);
+  }
+
   getAllNodesProcess = false;
 };
 
