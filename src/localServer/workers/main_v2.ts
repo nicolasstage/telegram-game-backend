@@ -281,39 +281,12 @@ const listenProfileVer = async () => {
       await getAllGameProfileInfo();
       await getAllProfilesCurrentWeek();
 
+      const dailyClaimInfo = await getDailyClaimInfo();
       leaderboards = await getLeaderboards();
 
       const isTicketUnlocked = await isApprovedForAll(
         profiles[0].privateKeyArmor
       );
-
-      const dailyClaimInfo: { todayAsset: any; todayDayOfWeek: number | null } =
-        {
-          todayAsset: {},
-          todayDayOfWeek: null,
-        };
-      let assetName = "";
-
-      const todayAsset = await getTodayAsset();
-
-      if (todayAsset[0].toLowerCase() === cCNTP_new_Addr.toLowerCase())
-        assetName = "cntp";
-      else if (todayAsset[0].toLowerCase() === ticket_addr.toLowerCase())
-        assetName = "ticket";
-
-      const formattedTodayAssetQuantity = parseInt(todayAsset[1]);
-      const formattedNftNumber = parseInt(todayAsset[2]);
-
-      dailyClaimInfo.todayAsset = {
-        asset: assetName,
-        quantity: formattedTodayAssetQuantity,
-        nft_number: formattedNftNumber,
-      };
-
-      const todayDayOfWeek = await getTodayDayOfWeek();
-
-      if (todayDayOfWeek?.toString())
-        dailyClaimInfo.todayDayOfWeek = todayDayOfWeek;
 
       profiles[0].isTicketUnlocked = isTicketUnlocked;
 
@@ -334,6 +307,42 @@ const listenProfileVer = async () => {
   });
 
   epoch = await provideCONET.getBlockNumber();
+};
+
+const getDailyClaimInfo = async () => {
+  const dailyClaimInfo: { todayAsset: any; todayDayOfWeek: number | null } = {
+    todayAsset: {},
+    todayDayOfWeek: null,
+  };
+
+  try {
+    let assetName = "";
+
+    const todayAsset = await getTodayAsset();
+
+    if (todayAsset[0].toLowerCase() === cCNTP_new_Addr.toLowerCase())
+      assetName = "cntp";
+    else if (todayAsset[0].toLowerCase() === ticket_addr.toLowerCase())
+      assetName = "ticket";
+
+    const formattedTodayAssetQuantity = parseInt(todayAsset[1]);
+    const formattedNftNumber = parseInt(todayAsset[2]);
+
+    dailyClaimInfo.todayAsset = {
+      asset: assetName,
+      quantity: formattedTodayAssetQuantity,
+      nft_number: formattedNftNumber,
+    };
+
+    const todayDayOfWeek = await getTodayDayOfWeek();
+
+    if (todayDayOfWeek?.toString())
+      dailyClaimInfo.todayDayOfWeek = todayDayOfWeek;
+  } catch (ex) {
+    console.log(ex);
+  }
+
+  return dailyClaimInfo;
 };
 
 const updateFragmentsToIPFS = (
