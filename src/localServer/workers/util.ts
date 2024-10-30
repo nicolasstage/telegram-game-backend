@@ -433,10 +433,16 @@ const getEstimateGasForTokenTransfer = (
     try {
       const Fee = await provide.getFeeData();
       const gasPrice = ethers.formatUnits(Fee.gasPrice, "gwei");
-      const fee = parseFloat(ethers.formatEther(_fee * Fee.gasPrice)).toFixed(
-        8
-      );
-      return resolve({ gasPrice, fee });
+      const fee = parseFloat(ethers.formatEther(_fee * Fee.gasPrice));
+
+      const roundedUpFee = Math.ceil(fee * 100000000) / 100000000;
+      let roundedUpFeeStr = roundedUpFee.toFixed(8).toString();
+
+      if (parseFloat(roundedUpFeeStr) === 0) {
+        roundedUpFeeStr = roundedUpFeeStr.slice(0, -1) + "1";
+      }
+
+      return resolve({ gasPrice, fee: roundedUpFeeStr });
     } catch (ex) {
       return resolve(false);
     }
