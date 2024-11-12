@@ -206,7 +206,8 @@ declare type WorkerCommand =
   | "estimateGas"
   | "claimDailyReward"
   | "getNativeBalance"
-  | "isAddress";
+  | "isAddress"
+  | "transferNft";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"

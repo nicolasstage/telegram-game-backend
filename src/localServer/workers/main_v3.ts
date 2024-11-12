@@ -57,6 +57,10 @@ const blast_mainnet_CNTP = "0x0f43685B2cB08b9FB8Ca1D981fF078C22Fec84c5";
 const leaderboardUpdateInterval = 1000 * 60 * 60 * 3;
 let isFetchingLeaderboard = false;
 
+const gameNftIds = {
+  ticket: 1,
+};
+
 const initV2 = async (profile) => {
   const url = `${apiv3_endpoint}initV3`;
   const result = await postToEndpoint(url, true, {
@@ -2490,56 +2494,6 @@ const getAllGameProfileInfo = async () => {
   return profiles;
 };
 
-/**
- * Function used only for testing. It's started by the initEncryptWorker in encrypt.ts.
- * DO NOT USE IN PRODUCTION.
- */
-const testFunction = async () => {
-  //   -------- startMining --------
-  // const cmd3: worker_command = {
-  //   cmd: "startMining",
-  //   data: [profileKeyID],
-  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
-  // };
-  // await startMining(cmd3);
-  // -------- getFirstRouletteResult --------
-  // const cmd4: worker_command = {
-  //   cmd: "getRouletteResult",
-  //   data: ["0xFaA48180274083D394ce4be2174CC41d72cD1164"],
-  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
-  // };
-  // await getRouletteResult(cmd4);
-  // -------- importWallet --------
-  // const cmd5: worker_command = {
-  //   cmd: "importWallet",
-  //   data: [
-  //     "0x822cc521850cb0a3fa0cb38961c3c4eec142aecc5b40b255a4021e8dbeea754a",
-  //   ],
-  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
-  // };
-  // await importWallet(cmd5);
-  // -------- saveGameProfileInfo --------
-  // const cmd5: worker_command = {
-  //   cmd: "saveGameProfileInfo",
-  //   data: [
-  //     "0xFaA48180274083D394ce4be2174CC41d72cD1164",
-  //     { nickname: "nicolas1", bio: "testing bio1", imageUrl: "", gateway: "" },
-  //   ],
-  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
-  // };
-  // await saveGameProfileInfo(cmd5);
-  // -------- getGameProfileInfo --------
-  // const cmd5: worker_command = {
-  //   cmd: "getGameProfileInfo",
-  //   data: [
-  //     "0xFaA48180274083D394ce4be2174CC41d72cD1164",
-  //     { addressToSearch: "0xFaA48180274083D394ce4be2174CC41d72cD1164" },
-  //   ],
-  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
-  // };
-  // await getGameProfileInfo(cmd5);
-};
-
 const transferToken = async (cmd: worker_command) => {
   const [amount, sourceProfileKeyID, assetName, toAddress] = cmd.data;
   if (!assetName || !toAddress || !amount || !sourceProfileKeyID) {
@@ -2661,4 +2615,129 @@ const isAddress = (cmd: worker_command) => {
   const ret = getAddress(address);
   cmd.data = [ret === "" ? false : true];
   return returnUUIDChannel(cmd);
+};
+
+const getNftBalance = async (profile) => {
+  const cryptoAsset = profile?.tickets;
+
+  if (!cryptoAsset) {
+    return null;
+  }
+
+  return parseFloat(cryptoAsset.balance);
+};
+
+const transferNft = async (cmd) => {
+  const [amount, sourceProfileKeyID, assetName, toAddress] = cmd.data;
+
+  if (!assetName || !toAddress || !amount || !sourceProfileKeyID) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  if (!Object.keys(gameNftIds).includes(assetName)) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  if (!getAddress(toAddress) && !getAddress(sourceProfileKeyID)) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profiles = CoNET_Data?.profiles;
+  if (!profiles) {
+    cmd.err = "NOT_READY";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profileIndex = profiles.findIndex(
+    (n) => n.keyID.toLowerCase() === sourceProfileKeyID.toLowerCase()
+  );
+
+  if (profileIndex < 0) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const sourceProfile = profiles[profileIndex];
+  sendState("beforeunload", true);
+
+  const nftBalance = await getNftBalance(sourceProfile);
+
+  if (
+    !nftBalance ||
+    !CoNET_Data?.profiles ||
+    nftBalance - amount < 0 ||
+    !sourceProfile.privateKeyArmor
+  ) {
+    const cmd1 = {
+      cmd: "nftTransferStatus",
+      data: [-1],
+    };
+    sendState("toFrontEnd", cmd1);
+    return false;
+  }
+
+  const cmd1 = {
+    cmd: "nftTransferStatus",
+    data: [1],
+  };
+  sendState("toFrontEnd", cmd1);
+
+  const wallet = new ethers.Wallet(sourceProfile.privateKeyArmor, provideCONET);
+  const ticketContract = new ethers.Contract(
+    ticket_addr,
+    guardian_erc1155,
+    wallet
+  );
+
+  try {
+    const pendingTx = await ticketContract.safeTransferFrom(
+      wallet.address,
+      toAddress,
+      gameNftIds?.[assetName],
+      amount,
+      "0x00"
+    );
+
+    const completedTx = await pendingTx.wait();
+
+    sendState("beforeunload", false);
+
+    const cmd2 = {
+      cmd: "nftTransferStatus",
+      data: [2],
+    };
+    sendState("toFrontEnd", cmd2);
+
+    const cmd4 = {
+      cmd: "nftTransferStatus",
+      data: [4, completedTx],
+    };
+    sendState("toFrontEnd", cmd4);
+    return returnUUIDChannel(cmd);
+  } catch (ex) {
+    const cmd1 = {
+      cmd: "nftTransferStatus",
+      data: [-1],
+    };
+    sendState("toFrontEnd", cmd1);
+
+    return logger(ex);
+  }
+};
+
+/**
+ * Function used only for testing. It's started by the initEncryptWorker in encrypt.ts.
+ * DO NOT USE IN PRODUCTION.
+ */
+const testFunction = async () => {
+  //   -------- transferNft --------
+  // const cmd5: worker_command = {
+  //   cmd: "transferNft",
+  //   data: [1, "ORIGIN_WALLET_ADDRESS", "ticket", "DESTINATION_WALLET_ADDRESS"],
+  //   uuid: "6ddc2676-7982-4b96-8533-52bcb59c2ed6",
+  // };
+  // await transferNft(cmd5);
 };

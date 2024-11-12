@@ -148,6 +148,10 @@ const processCmd = async (cmd: worker_command) => {
       return await transferToken(cmd);
     }
 
+    case "transferNft": {
+      return await transferNft(cmd);
+    }
+
     case "estimateGas": {
       return await estimateGas(cmd);
     }
