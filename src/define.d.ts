@@ -204,10 +204,11 @@ declare type WorkerCommand =
   | "unlockTicket"
   | "transferToken"
   | "estimateGas"
+  | "estimateGasForNftContract"
   | "claimDailyReward"
   | "getNativeBalance"
   | "isAddress"
-  | "transferNft";
+  | "transferTicketNft";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"

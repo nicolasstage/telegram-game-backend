@@ -447,3 +447,59 @@ const getEstimateGasForTokenTransfer = (
       return resolve(false);
     }
   });
+
+const getEstimateGasForTicketNftTransfer = (
+  privateKey,
+  asset,
+  nftId,
+  transferAmount,
+  toAddr
+) =>
+  new Promise(async (resolve) => {
+    const provide = new ethers.JsonRpcProvider(conet_rpc);
+    const wallet = new ethers.Wallet(privateKey, provide);
+    let _fee;
+    const smartContractAddr = ticket_addr;
+
+    if (smartContractAddr) {
+      const estGas = new ethers.Contract(smartContractAddr, ticketAbi, wallet);
+      try {
+        _fee = await estGas.safeTransferFrom.estimateGas(
+          wallet.address,
+          toAddr,
+          nftId,
+          transferAmount,
+          "0x"
+        );
+      } catch (ex) {
+        return resolve(false);
+      }
+    } else {
+      const tx = {
+        to: toAddr,
+        value: transferAmount,
+      };
+      try {
+        _fee = await wallet.estimateGas(tx);
+      } catch (ex) {
+        return resolve(false);
+      }
+    }
+
+    try {
+      const Fee = await provide.getFeeData();
+      const gasPrice = ethers.formatUnits(Fee.gasPrice, "gwei");
+      const fee = parseFloat(ethers.formatEther(_fee * Fee.gasPrice));
+
+      const roundedUpFee = Math.ceil(fee * 100000000) / 100000000;
+      let roundedUpFeeStr = roundedUpFee.toFixed(8).toString();
+
+      if (parseFloat(roundedUpFeeStr) === 0) {
+        roundedUpFeeStr = roundedUpFeeStr.slice(0, -1) + "1";
+      }
+
+      return resolve({ gasPrice, fee: roundedUpFeeStr });
+    } catch (ex) {
+      return resolve(false);
+    }
+  });

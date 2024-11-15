@@ -2584,6 +2584,47 @@ const estimateGas = async (cmd: worker_command) => {
   return returnUUIDChannel(cmd);
 };
 
+const estimateGasForNftContract = async (cmd: worker_command) => {
+  const [amount, sourceProfileKeyID, assetName, toAddress] = cmd.data;
+
+  if (!assetName || !toAddress || !amount || !sourceProfileKeyID) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profiles = CoNET_Data?.profiles;
+
+  if (!profiles) {
+    cmd.err = "FAILURE";
+    return returnUUIDChannel(cmd);
+  }
+
+  const profile = getProfileFromKeyID(sourceProfileKeyID);
+
+  if (!profile || !profile?.tokens) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const asset = profile.tickets;
+
+  if (!profile.privateKeyArmor || !asset) {
+    cmd.err = "INVALID_DATA";
+    return returnUUIDChannel(cmd);
+  }
+
+  const data: any = await getEstimateGasForTicketNftTransfer(
+    profile.privateKeyArmor,
+    assetName,
+    gameNftIds?.[assetName.toLowerCase()],
+    amount,
+    toAddress
+  );
+
+  cmd.data = [data.gasPrice, data.fee, true, 5000];
+  return returnUUIDChannel(cmd);
+};
+
 const getNativeBalance = async (cmd: worker_command) => {
   const [sourceProfileKeyID] = cmd.data;
 
@@ -2627,7 +2668,7 @@ const getNftBalance = async (profile) => {
   return parseFloat(cryptoAsset.balance);
 };
 
-const transferNft = async (cmd) => {
+const transferTicketNft = async (cmd) => {
   const [amount, sourceProfileKeyID, assetName, toAddress] = cmd.data;
 
   if (!assetName || !toAddress || !amount || !sourceProfileKeyID) {
@@ -2635,7 +2676,7 @@ const transferNft = async (cmd) => {
     return returnUUIDChannel(cmd);
   }
 
-  if (!Object.keys(gameNftIds).includes(assetName)) {
+  if (!Object.keys(gameNftIds).includes(assetName.toLowerCase())) {
     cmd.err = "INVALID_DATA";
     return returnUUIDChannel(cmd);
   }
@@ -2696,7 +2737,7 @@ const transferNft = async (cmd) => {
     const pendingTx = await ticketContract.safeTransferFrom(
       wallet.address,
       toAddress,
-      gameNftIds?.[assetName],
+      gameNftIds?.[assetName.toLowerCase()],
       amount,
       "0x00"
     );

@@ -148,12 +148,16 @@ const processCmd = async (cmd: worker_command) => {
       return await transferToken(cmd);
     }
 
-    case "transferNft": {
-      return await transferNft(cmd);
+    case "transferTicketNft": {
+      return await transferTicketNft(cmd);
     }
 
     case "estimateGas": {
       return await estimateGas(cmd);
+    }
+
+    case "estimateGasForNftContract": {
+      return await estimateGasForNftContract(cmd);
     }
 
     case "getNativeBalance": {
