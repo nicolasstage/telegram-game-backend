@@ -2618,10 +2618,9 @@ const estimateGasForNftContract = async (cmd: worker_command) => {
     return returnUUIDChannel(cmd);
   }
 
-  const data: any = await getEstimateGasForTicketNftTransfer(
+  const data: any = await getEstimateGasForNftTransfer(
     profile.privateKeyArmor,
-    assetName,
-    nfts?.[assetName.toLowerCase()].id,
+    nfts?.[assetName.toLowerCase()],
     amount,
     toAddress
   );

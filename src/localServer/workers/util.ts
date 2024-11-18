@@ -448,10 +448,9 @@ const getEstimateGasForTokenTransfer = (
     }
   });
 
-const getEstimateGasForTicketNftTransfer = (
+const getEstimateGasForNftTransfer = (
   privateKey,
-  asset,
-  nftId,
+  nftObj,
   transferAmount,
   toAddr
 ) =>
@@ -459,15 +458,19 @@ const getEstimateGasForTicketNftTransfer = (
     const provide = new ethers.JsonRpcProvider(conet_rpc);
     const wallet = new ethers.Wallet(privateKey, provide);
     let _fee;
-    const smartContractAddr = ticket_addr;
+    const smartContractAddr = nftObj?.contractAddress;
 
     if (smartContractAddr) {
-      const estGas = new ethers.Contract(smartContractAddr, ticketAbi, wallet);
+      const estGas = new ethers.Contract(
+        smartContractAddr,
+        nftObj?.contractAbi,
+        wallet
+      );
       try {
         _fee = await estGas.safeTransferFrom.estimateGas(
           wallet.address,
           toAddr,
-          nftId,
+          nftObj?.id,
           transferAmount,
           "0x"
         );
