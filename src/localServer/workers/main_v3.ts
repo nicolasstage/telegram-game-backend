@@ -57,8 +57,13 @@ const blast_mainnet_CNTP = "0x0f43685B2cB08b9FB8Ca1D981fF078C22Fec84c5";
 const leaderboardUpdateInterval = 1000 * 60 * 60 * 3;
 let isFetchingLeaderboard = false;
 
-const gameNftIds = {
-  ticket: 1,
+const nfts = {
+  ticket: {
+    id: 1,
+    name: "ticket",
+    contractAddress: ticket_addr,
+    contractAbi: ticketAbi,
+  },
 };
 
 const initV2 = async (profile) => {
@@ -2616,7 +2621,7 @@ const estimateGasForNftContract = async (cmd: worker_command) => {
   const data: any = await getEstimateGasForTicketNftTransfer(
     profile.privateKeyArmor,
     assetName,
-    gameNftIds?.[assetName.toLowerCase()],
+    nfts?.[assetName.toLowerCase()].id,
     amount,
     toAddress
   );
@@ -2658,17 +2663,21 @@ const isAddress = (cmd: worker_command) => {
   return returnUUIDChannel(cmd);
 };
 
-const getNftBalance = async (profile) => {
-  const cryptoAsset = profile?.tickets;
-
-  if (!cryptoAsset) {
-    return null;
+const getNftBalance = async (profile, assetName) => {
+  let cryptoAsset: any = null;
+  switch (assetName.toLowerCase()) {
+    case "ticket":
+      cryptoAsset = profile?.tickets;
+      if (!cryptoAsset) {
+        return null;
+      }
+      return parseFloat(cryptoAsset?.balance);
+    default:
+      return null;
   }
-
-  return parseFloat(cryptoAsset.balance);
 };
 
-const transferTicketNft = async (cmd) => {
+const transferNft = async (cmd) => {
   const [amount, sourceProfileKeyID, assetName, toAddress] = cmd.data;
 
   if (!assetName || !toAddress || !amount || !sourceProfileKeyID) {
@@ -2676,7 +2685,7 @@ const transferTicketNft = async (cmd) => {
     return returnUUIDChannel(cmd);
   }
 
-  if (!Object.keys(gameNftIds).includes(assetName.toLowerCase())) {
+  if (!Object.keys(nfts).includes(assetName.toLowerCase())) {
     cmd.err = "INVALID_DATA";
     return returnUUIDChannel(cmd);
   }
@@ -2704,7 +2713,7 @@ const transferTicketNft = async (cmd) => {
   const sourceProfile = profiles[profileIndex];
   sendState("beforeunload", true);
 
-  const nftBalance = await getNftBalance(sourceProfile);
+  const nftBalance = await getNftBalance(sourceProfile, assetName);
 
   if (
     !nftBalance ||
@@ -2727,17 +2736,17 @@ const transferTicketNft = async (cmd) => {
   sendState("toFrontEnd", cmd1);
 
   const wallet = new ethers.Wallet(sourceProfile.privateKeyArmor, provideCONET);
-  const ticketContract = new ethers.Contract(
-    ticket_addr,
-    guardian_erc1155,
+  const contract = new ethers.Contract(
+    nfts?.[assetName.toLowerCase()].contractAddress,
+    nfts?.[assetName.toLowerCase()].contractAbi,
     wallet
   );
 
   try {
-    const pendingTx = await ticketContract.safeTransferFrom(
+    const pendingTx = await contract.safeTransferFrom(
       wallet.address,
       toAddress,
-      gameNftIds?.[assetName.toLowerCase()],
+      nfts?.[assetName.toLowerCase()].id,
       amount,
       "0x00"
     );

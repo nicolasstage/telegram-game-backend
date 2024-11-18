@@ -208,7 +208,7 @@ declare type WorkerCommand =
   | "claimDailyReward"
   | "getNativeBalance"
   | "isAddress"
-  | "transferTicketNft";
+  | "transferNft";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"
@@ -260,6 +260,7 @@ type regionType = {
 interface conet_tokens {
   //	CONET Holesky
   conet: CryptoAsset;
+
   // CNTP: CryptoAsset
   cCNTP: CryptoAsset;
 
