@@ -71,6 +71,19 @@ const nfts = {
     contractAddress: ticket_addr,
     contractAbi: ticketAbi,
   },
+  conetian: {
+    id: 0,
+    name: "conetian",
+    contractAddress: nftContract,
+    contractAbi: conetianPlanAbi,
+    maximumSupply: 30000,
+  },
+  conetianReferrer: {
+    id: 10,
+    name: "conetianReferrer",
+    contractAddress: nftContract,
+    contractAbi: conetianPlanAbi,
+  },
 };
 
 const initV2 = async (profile) => {
@@ -981,13 +994,19 @@ const getProfileAssets_CONET_Balance = async (profile: profile) => {
       provideBNB = new ethers.JsonRpcProvider(bsc_mainchain);
     }
 
-    const [balanceCCNTP, conet_Holesky, balanceBnb, balanceWUSDT] =
-      await Promise.all([
-        scanCCNTP(key, provideCONET),
-        scanCONETHolesky(key, provideCONET),
-        scanBNB(key),
-        scanWUSDT(key),
-      ]);
+    const [
+      balanceCCNTP,
+      conet_Holesky,
+      balanceBnb,
+      balanceWUSDT,
+      _CONETianPlan,
+    ] = await Promise.all([
+      scanCCNTP(key, provideCONET),
+      scanCONETHolesky(key, provideCONET),
+      scanBNB(key),
+      scanWUSDT(key),
+      scan_CONETianPlanAddr(key),
+    ]);
 
     current.cCNTP.balance = balanceCCNTP;
     parseFloat(ethers.formatEther(balanceCCNTP)).toFixed(6);
@@ -1026,6 +1045,52 @@ const getProfileAssets_CONET_Balance = async (profile: profile) => {
         name: "bnb",
       };
     }
+
+    const CONETianData:
+      | {
+          balanceGuardian: BigInt;
+          balanceReferrer: BigInt;
+          availableBalance: BigInt;
+        }
+      | false = _CONETianPlan;
+
+    if (CONETianData !== false) {
+      if (current.ConetianNFT) {
+        current.ConetianNFT.balance = CONETianData.balanceGuardian.toString();
+        current.ConetianNFT.totalSupply = parseInt(
+          CONETianData.availableBalance.toString()
+        ).toFixed(0);
+      } else {
+        current.ConetianNFT = {
+          isNft: true,
+          balance: CONETianData.balanceGuardian.toString(),
+          history: [],
+          network: "CONET Holesky",
+          decimal: nfts.conetian.id,
+          contract: nfts.conetian.contractAddress,
+          name: "ConetianNFT",
+          supplyMaximum: nfts.conetian.maximumSupply.toString(),
+          totalSupply: parseInt(
+            CONETianData.availableBalance.toString()
+          ).toFixed(0),
+        };
+      }
+
+      if (current.ConetianAgentNFT) {
+        current.ConetianAgentNFT.balance =
+          CONETianData.balanceReferrer.toString();
+      } else {
+        current.ConetianAgentNFT = {
+          isNft: true,
+          balance: CONETianData.balanceReferrer.toString(),
+          history: [],
+          network: "CONET Holesky",
+          decimal: nfts.conetianReferrer.id,
+          contract: nfts.conetianReferrer.contractAddress,
+          name: "ConetianAgentNFT",
+        };
+      }
+    }
   }
 
   return true;
@@ -1061,6 +1126,27 @@ const scanBNB = async (walletAddr) => {
 const scanWUSDT = async (walletAddr: string) => {
   return await scan_erc20_balance(walletAddr, provideBNB, bnb_usdt_contract);
 };
+
+const scan_CONETianPlanAddr: any = async (walletAddr) =>
+  new Promise(async (resolve) => {
+    const CONETianPlanContract = new ethers.Contract(
+      nfts.conetian.contractAddress,
+      nfts.conetian.contractAbi,
+      provideCONET
+    );
+    try {
+      const [balanceGuardian, balanceReferrer, availableBalance] =
+        await Promise.all([
+          CONETianPlanContract.balanceOf(walletAddr, nfts.conetian.id),
+          CONETianPlanContract.balanceOf(walletAddr, nfts.conetianReferrer.id),
+          CONETianPlanContract.getAvailableBalance(),
+        ]);
+
+      return resolve({ balanceGuardian, balanceReferrer, availableBalance });
+    } catch (ex) {
+      resolve(false);
+    }
+  });
 
 const storeSystemData = async () => {
   if (!CoNET_Data) {

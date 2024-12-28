@@ -122,7 +122,10 @@ interface CryptoAsset {
   decimal: number;
   contract: string;
   name: string;
+  isNft?: boolean;
   unlocked?: boolean;
+  supplyMaximum?: string;
+  totalSupply?: string;
 }
 
 interface passInit {
@@ -289,6 +292,10 @@ interface conet_tokens {
   bnb: CryptoAsset;
   // wbnb: CryptoAsset
   wusdt: CryptoAsset;
+
+  // NFTs
+  ConetianNFT?: CryptoAsset;
+  ConetianAgentNFT?: CryptoAsset;
 }
 
 interface profile extends keyPair {
