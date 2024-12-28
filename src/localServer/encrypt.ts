@@ -168,6 +168,18 @@ const processCmd = async (cmd: worker_command) => {
       return isAddress(cmd);
     }
 
+    case "prePurchase": {
+      return prePurchase(cmd);
+    }
+
+    case "purchaseConetian": {
+      return purchaseConetian(cmd);
+    }
+
+    case "isWalletAgent": {
+      return isWalletAgent(cmd);
+    }
+
     default: {
       cmd.err = "INVALID_COMMAND";
       responseChannel.postMessage(JSON.stringify(cmd));

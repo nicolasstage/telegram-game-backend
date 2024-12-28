@@ -6,6 +6,10 @@ const Arbitrum_USDT = "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9";
 const conet_dWETH = "0x84b6d6A6675F830c8385f022Aefc9e3846A89D3B";
 const conet_dUSDT = "0x0eD55798a8b9647f7908c72a0Ce844ad47274422";
 const conet_dWBNB = "0xd8b094E91c552c623bc054085871F6c1CA3E5cAd";
+const claimable_BNB_USDT = "0x49d1E11A25E99015cAaE3e032a7ED23D4399F3f9";
+const claimable_BNB = "0xBE8184294613a6f2531A7EA996deD57cb8CAeB0B";
+const nftContract = "0x4F1F5c25429Ea458C9e4363F05110f668f20D58B".toLowerCase();
+
 const bsc_mainchain = "https://bsc-dataseed.binance.org/";
 const Arbitrum_One_RPC = "https://arb1.arbitrum.io/rpc";
 
@@ -15,7 +19,17 @@ const _ethRpc = [
   "https://ethereum-rpc.publicnode.com",
 ];
 
+const blast_mainnet1 = [
+  "https://blast.din.dev/rpc",
+  "https://rpc.ankr.com/blast",
+  "https://blastl2-mainnet.public.blastapi.io",
+  "https://blast.blockpi.network/v1/rpc/public",
+];
+
 const ethRpc = () => _ethRpc[Math.round(Math.random() * (_ethRpc.length - 1))];
+
+const blast_mainnet = () =>
+  blast_mainnet1[Math.round(Math.random() * (blast_mainnet1.length - 1))];
 
 const XMLHttpRequestTimeout = 30 * 1000;
 
@@ -326,7 +340,9 @@ const getAssetERC20Address = (assetName) => {
   }
 };
 
-const parseEther = (ether, tokenName) => {
+const parseEther = (_ether, tokenName) => {
+  const ether = typeof _ether === "number" ? _ether.toFixed(8) : _ether;
+
   switch (tokenName) {
     case "arb_usdt":
     case "usdt": {

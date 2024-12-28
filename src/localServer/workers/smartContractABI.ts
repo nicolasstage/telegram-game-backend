@@ -4021,19 +4021,6 @@ const conetianPlanAbi = [
   },
   {
     inputs: [],
-    name: "Conetian",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "Guardian",
     outputs: [
       {
@@ -4047,20 +4034,7 @@ const conetianPlanAbi = [
   },
   {
     inputs: [],
-    name: "Pioneer",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "Sentinel",
+    name: "GuardianReferrer",
     outputs: [
       {
         internalType: "uint256",
@@ -4198,6 +4172,19 @@ const conetianPlanAbi = [
     type: "function",
   },
   {
+    inputs: [],
+    name: "canTransferRule",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
     inputs: [
       {
         internalType: "address",
@@ -4246,7 +4233,7 @@ const conetianPlanAbi = [
     outputs: [
       {
         internalType: "bool",
-        name: "",
+        name: "existNFT",
         type: "bool",
       },
     ],
@@ -4255,49 +4242,12 @@ const conetianPlanAbi = [
   },
   {
     inputs: [],
-    name: "getAllLeft",
+    name: "getAvailableBalance",
     outputs: [
       {
-        internalType: "uint256[4]",
-        name: "nft",
-        type: "uint256[4]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getAllSupply",
-    outputs: [
-      {
-        internalType: "uint256[4]",
-        name: "nft",
-        type: "uint256[4]",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "to",
-        type: "address",
-      },
-    ],
-    name: "getAssets",
-    outputs: [
-      {
-        internalType: "uint256[4]",
-        name: "nft",
-        type: "uint256[4]",
-      },
-      {
-        internalType: "uint256[4]",
-        name: "nft_referrer",
-        type: "uint256[4]",
+        internalType: "uint256",
+        name: "available",
+        type: "uint256",
       },
     ],
     stateMutability: "view",
@@ -4367,65 +4317,7 @@ const conetianPlanAbi = [
   },
   {
     inputs: [],
-    name: "maxConetian",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
     name: "maxGuardian",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "maxPioneer",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "maxSentinel",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    name: "maxSupply",
     outputs: [
       {
         internalType: "uint256",
@@ -4444,19 +4336,19 @@ const conetianPlanAbi = [
         type: "address",
       },
       {
-        internalType: "address",
-        name: "_referrer",
-        type: "address",
-      },
-      {
         internalType: "string",
         name: "_tx",
         type: "string",
       },
       {
-        internalType: "uint256[]",
+        internalType: "uint256",
         name: "values",
-        type: "uint256[]",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "_referrer",
+        type: "address",
       },
     ],
     name: "mint",
@@ -4596,6 +4488,19 @@ const conetianPlanAbi = [
   {
     inputs: [
       {
+        internalType: "bool",
+        name: "status",
+        type: "bool",
+      },
+    ],
+    name: "setCanTransferRule",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "string",
         name: "url",
         type: "string",
@@ -4655,25 +4560,6 @@ const conetianPlanAbi = [
     inputs: [
       {
         internalType: "uint256",
-        name: "id",
-        type: "uint256",
-      },
-    ],
-    name: "totalSupply",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
         name: "",
         type: "uint256",
       },
@@ -4687,6 +4573,101 @@ const conetianPlanAbi = [
       },
     ],
     stateMutability: "view",
+    type: "function",
+  },
+];
+
+const assetOracle_ABI = [
+  {
+    inputs: [],
+    stateMutability: "nonpayable",
+    type: "constructor",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    name: "GuardianPrice",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "adminList",
+    outputs: [
+      {
+        internalType: "bool",
+        name: "",
+        type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "addr",
+        type: "address",
+      },
+      {
+        internalType: "bool",
+        name: "status",
+        type: "bool",
+      },
+    ],
+    name: "changeAddressInAdminlist",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "lastUpdateEpoch",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string[]",
+        name: "tokenNames",
+        type: "string[]",
+      },
+      {
+        internalType: "uint256[]",
+        name: "prices",
+        type: "uint256[]",
+      },
+    ],
+    name: "updatePrice",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];

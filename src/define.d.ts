@@ -208,7 +208,10 @@ declare type WorkerCommand =
   | "claimDailyReward"
   | "getNativeBalance"
   | "isAddress"
-  | "transferNft";
+  | "transferNft"
+  | "prePurchase"
+  | "purchaseConetian"
+  | "isWalletAgent";
 
 type SINodesSortby =
   | "CUSTOMER_REVIEW"
@@ -280,12 +283,12 @@ interface conet_tokens {
 
   //	ETH
   // eth: CryptoAsset
-  // usdt:CryptoAsset
+  // usdt: CryptoAsset;
 
   //	BSC
-  // bnb: CryptoAsset
+  bnb: CryptoAsset;
   // wbnb: CryptoAsset
-  // wusdt: CryptoAsset
+  wusdt: CryptoAsset;
 }
 
 interface profile extends keyPair {
@@ -742,3 +745,8 @@ type ITypeTransferCount = {
   nodeIpaddress: string;
   ssl: boolean;
 };
+
+interface assetOracle {
+  lastUpdate: number;
+  assets: assetPrice[];
+}
