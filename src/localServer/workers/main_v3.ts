@@ -1432,42 +1432,16 @@ const getLeaderboards = async () => {
   };
 };
 
-/**
- * Create a new wallet if no wallet exists yet in the local storage or get the wallet from the local storage if it exists.
- *
- * @param cmd - empty data
- * @returns
- */
-const createOrGetWallet = async () => {
+const getWallet = async () => {
   if (!CoNET_Data?.profiles) {
-    const acc = createKeyHDWallets();
-
-    const key = await createGPGKey("", "", "");
-
-    const profile: profile = {
-      tokens: initProfileTokens(),
-      publicKeyArmor: acc.publicKey,
-      keyID: acc.address,
-      isPrimary: true,
-      referrer: null,
-      isNode: false,
-      pgpKey: {
-        privateKeyArmor: key.privateKey,
-        publicKeyArmor: key.publicKey,
-      },
-      privateKeyArmor: acc.signingKey.privateKey,
-      hdPath: acc.path,
-      index: acc.index,
-      tickets: { balance: "0" },
+    const cmd: channelWroker = {
+      cmd: "profileVer",
+      data: [],
     };
 
-    CoNET_Data = {
-      mnemonicPhrase: acc.mnemonic.phrase,
-      profiles: [profile],
-      isReady: true,
-      ver: 0,
-      nonce: 0,
-    };
+    sendState("toFrontEnd", cmd);
+
+    return;
   }
 
   CoNET_Data.profiles.forEach(async (n) => {
@@ -1521,14 +1495,98 @@ const createOrGetWallet = async () => {
   sendState("toFrontEnd", cmd);
 };
 
+const createWallet = async (cmd: worker_command) => {
+  const acc = createKeyHDWallets();
+
+  const key = await createGPGKey("", "", "");
+
+  let profile: profile = {
+    tokens: initProfileTokens(),
+    publicKeyArmor: acc.publicKey,
+    keyID: acc.address,
+    isPrimary: true,
+    referrer: null,
+    isNode: false,
+    pgpKey: {
+      privateKeyArmor: key.privateKey,
+      publicKeyArmor: key.publicKey,
+    },
+    privateKeyArmor: acc.signingKey.privateKey,
+    hdPath: acc.path,
+    index: acc.index,
+    tickets: { balance: "0" },
+  };
+
+  CoNET_Data = {
+    mnemonicPhrase: acc.mnemonic.phrase,
+    profiles: [profile],
+    isReady: true,
+    ver: 0,
+    nonce: 0,
+  };
+
+  CoNET_Data.profiles.forEach(async (n) => {
+    n.keyID = n.keyID.toLocaleLowerCase();
+    await initV2(n);
+    n.tokens.cCNTP.unlocked = false;
+  });
+
+  CoNET_Data.profiles.forEach(async (n) => {
+    if (!n.tokens.wusdt) {
+      n.tokens.wusdt = {
+        balance: "0",
+        history: [],
+        network: "BSC",
+        decimal: 18,
+        contract: bnb_usdt_contract,
+        name: "wusdt",
+      };
+    }
+
+    if (!n.tokens.bnb) {
+      n.tokens.bnb = {
+        balance: "0",
+        history: [],
+        network: "BSC",
+        decimal: 18,
+        contract: "",
+        name: "bnb",
+      };
+    }
+  });
+
+  await getFaucet(
+    CoNET_Data.profiles[0].keyID,
+    CoNET_Data.profiles[0].privateKeyArmor
+  );
+
+  await getAllReferrer();
+
+  await storeSystemData();
+
+  profile = CoNET_Data.profiles[0];
+
+  cmd.data[0] = profile;
+  returnUUIDChannel(cmd);
+};
+
 const importWallet = async (cmd: worker_command) => {
   const privateKey = cmd.data[0];
 
   cmd.data = [];
 
-  if (!CoNET_Data || !CoNET_Data?.profiles) {
-    cmd.err = "FAILURE";
-    return returnUUIDChannel(cmd);
+  if (!CoNET_Data) {
+    CoNET_Data = {
+      mnemonicPhrase: "",
+      profiles: [],
+      isReady: true,
+      ver: 0,
+      nonce: 0,
+    };
+  }
+
+  if (!CoNET_Data?.profiles) {
+    CoNET_Data.profiles = [];
   }
 
   let wallet;
@@ -2450,7 +2508,7 @@ const clearStorage = async (cmd: worker_command) => {
     } else {
       console.log("Database Deleted");
       CoNET_Data = null;
-      createOrGetWallet();
+      getWallet();
     }
   });
   returnUUIDChannel(cmd);

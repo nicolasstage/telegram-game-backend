@@ -58,7 +58,7 @@ const initEncryptWorker = async () => {
 
   listenProfileVer();
 
-  createOrGetWallet();
+  getWallet();
 
   // testFunction();
 };
@@ -90,6 +90,10 @@ const processCmd = async (cmd: worker_command) => {
   switch (cmd.cmd) {
     case "importWallet": {
       return importWallet(cmd);
+    }
+
+    case "createWallet": {
+      return createWallet(cmd);
     }
 
     case "getRouletteResult": {

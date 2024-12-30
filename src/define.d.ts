@@ -201,6 +201,7 @@ declare type WorkerCommand =
   | "getRouletteResult"
   | "getTicketResult"
   | "importWallet"
+  | "createWallet"
   | "clearStorage"
   | "saveGameProfileInfo"
   | "getGameProfileInfo"
