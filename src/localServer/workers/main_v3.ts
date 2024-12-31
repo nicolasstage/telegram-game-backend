@@ -3227,24 +3227,6 @@ const CONETianPlan_purchase = async (
 
     sendState("toFrontEnd", cmd2);
 
-    const kk1: CryptoAssetHistory = {
-      status: "Confirmed",
-      Nonce: receiptTx.nonce,
-      to: receiptTx.to,
-      transactionFee: stringFix(
-        ethers.formatEther(
-          parseFloat(receiptTx.gasUsed) * parseFloat(receiptTx.gasPrice)
-        )
-      ),
-      gasUsed: receiptTx.gasUsed.toString(),
-      isSend: true,
-      value: parseEther(total.toFixed(8), cryptoAsset.name).toString(),
-      time: new Date().toISOString(),
-      transactionHash: receiptTx.hash,
-    };
-
-    cryptoAsset.history.push(kk1);
-
     getProfileAssets_allOthers_Balance(profile);
 
     const data = {
