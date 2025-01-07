@@ -2880,6 +2880,18 @@ const getNftBalance = async (profile, assetName) => {
         return null;
       }
       return parseFloat(cryptoAsset?.balance);
+    case "conetian":
+      cryptoAsset = profile?.tokens?.ConetianNFT;
+      if (!cryptoAsset) {
+        return null;
+      }
+      return parseFloat(cryptoAsset?.balance);
+    case "conetianreferrer":
+      cryptoAsset = profile?.tokens?.ConetianAgentNFT;
+      if (!cryptoAsset) {
+        return null;
+      }
+      return parseFloat(cryptoAsset?.balance);
     default:
       return null;
   }
