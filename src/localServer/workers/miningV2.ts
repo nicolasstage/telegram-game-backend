@@ -13,7 +13,7 @@ const getAllNodes = async () => {
   let scanNodes = 0;
 
   const GuardianNodes = new ethers.Contract(
-    CONET_Guardian_PlanV7,
+    CONET_Guardian_Nodes_V6_cancou,
     guardian_erc1155,
     provideCONET
   );
@@ -42,7 +42,7 @@ const getAllNodes = async () => {
   }
 
   const GuardianNodesInfo = new ethers.Contract(
-    CONET_Guardian_NodeInfoV6,
+    CONET_Guardian_NodeInfoV6_cancou,
     CONET_Guardian_NodeInfo_ABI,
     provideCONET
   );
@@ -150,7 +150,7 @@ const _startMiningV2 = async (
           history: [],
           network: "CONET Holesky",
           decimal: 18,
-          contract: cCNTP_new_Addr,
+          contract: cCNTP_cancun_Addr,
           name: "cCNTP",
         };
       }

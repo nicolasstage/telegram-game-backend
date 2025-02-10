@@ -8,7 +8,9 @@ const conet_dUSDT = "0x0eD55798a8b9647f7908c72a0Ce844ad47274422";
 const conet_dWBNB = "0xd8b094E91c552c623bc054085871F6c1CA3E5cAd";
 const claimable_BNB_USDT = "0x49d1E11A25E99015cAaE3e032a7ED23D4399F3f9";
 const claimable_BNB = "0xBE8184294613a6f2531A7EA996deD57cb8CAeB0B";
-const nftContract = "0x4F1F5c25429Ea458C9e4363F05110f668f20D58B".toLowerCase();
+const CONETianPlanAddr_holesky =
+  "0x4F1F5c25429Ea458C9e4363F05110f668f20D58B".toLowerCase();
+const CONETianPlanAddr_cancun = "0x6a179f7eAc9D48dd9c835Db20ba9a11bb2EB7711";
 
 const bsc_mainchain = "https://bsc-dataseed.binance.org/";
 const Arbitrum_One_RPC = "https://arb1.arbitrum.io/rpc";
@@ -329,7 +331,7 @@ const getAssetERC20Address = (assetName) => {
       return conet_dWETH;
     }
     case "cCNTP": {
-      return cCNTP_new_Addr;
+      return cCNTP_cancun_Addr;
     }
     case "arb_usdt": {
       return Arbitrum_USDT;
@@ -369,7 +371,7 @@ const getNetwork = (networkName) => {
     case "cBNBUSDT":
     case "conet":
     case "cntpb": {
-      return conet_rpc;
+      return conet_cancun_rpc;
     }
     case "usdt":
     case "eth": {
@@ -471,7 +473,7 @@ const getEstimateGasForNftTransfer = (
   toAddr
 ) =>
   new Promise(async (resolve) => {
-    const provide = new ethers.JsonRpcProvider(conet_rpc);
+    const provide = new ethers.JsonRpcProvider(conet_cancun_rpc);
     const wallet = new ethers.Wallet(privateKey, provide);
     let _fee;
     const smartContractAddr = nftObj?.contractAddress;

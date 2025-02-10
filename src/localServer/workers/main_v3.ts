@@ -3,15 +3,21 @@ const databaseName = "conet";
 //	******************************************************************
 const cCNTP_new_Addr =
   "0xa4b389994A591735332A67f3561D60ce96409347".toLocaleLowerCase();
+const cCNTP_cancun_Addr =
+  "0x6C7C575010F86A311673432319299F3D68e4b522".toLocaleLowerCase();
 const faucet_addr =
   "0x04CD419cb93FD4f70059cAeEe34f175459Ae1b6a".toLocaleLowerCase();
 const ticket_addr =
   "0x92a033A02fA92169046B91232195D0E82b8017AB".toLocaleLowerCase();
 const profile_ver_addr =
-  "0x556bB96fC4C1316B2e5CEaA133f5D4157Eb05681".toLowerCase();
+  "0x20f8B4De2922d2e9d83B73f4561221d9278Af181".toLowerCase();
 const CONET_Guardian_PlanV7 =
   "0x35c6f84C5337e110C9190A5efbaC8B850E960384".toLowerCase();
+const CONET_Guardian_Nodes_V6_cancou =
+  "0x312c96DbcCF9aa277999b3a11b7ea6956DdF5c61".toLowerCase();
 const CONET_Guardian_NodeInfoV6 = "0x9e213e8B155eF24B466eFC09Bcde706ED23C537a";
+const CONET_Guardian_NodeInfoV6_cancou =
+  "0x88cBCc093344F2e1A6c2790A537574949D711E9d";
 const CONET_Guardian_NodeInfoV4 = "0x264ea87162463165101A500a6Bf8755b91220350";
 const CONET_Guardian_NodesV3 =
   "0x453701b80324C44366B34d167D40bcE2d67D6047".toLowerCase();
@@ -24,6 +30,8 @@ const Claimable_BlastUSDBv3 =
   "0x3258e9631ca4992F6674b114bd17c83CA30F734B".toLowerCase();
 const ReferralsAddressV3 =
   "0x1b104BCBa6870D518bC57B5AF97904fBD1030681".toLowerCase();
+const ReferralsAddress_cancun =
+  "0xbd67716ab31fc9691482a839117004497761D0b9".toLowerCase();
 const socialMediaAddress =
   "0x9f2d92da19beA5B2aBc51e69841a2dD7077EAD8f".toLowerCase();
 const profileContractAddress =
@@ -31,7 +39,7 @@ const profileContractAddress =
 const dailyCheckInContractAddress =
   "0xDCe3FAE41Eb95eA3Be59Ca334f340bdd1799aA29".toLowerCase();
 const assetOracle_contract_addr =
-  "0x8A7FD0B01B9CAb2Ef1FdcEe4134e32D066895e0c".toLowerCase();
+  "0x0Ac28e301FeE0f60439675594141BEB53853f7b9".toLowerCase();
 //	******************************************************************
 
 let miningConn;
@@ -44,8 +52,9 @@ const apiv3_endpoint = `https://apiv3.conet.network/api/`;
 const apiv4_endpoint = `https://apiv4.conet.network/api/`;
 const ipfsEndpoint = `https://ipfs.conet.network/api/`;
 const conet_rpc = "https://rpc.conet.network";
+const conet_cancun_rpc = "https://cancun-rpc.conet.network";
 let authorization_key = "";
-const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
+const provideCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
 let CoNET_Data: encrypt_keys_object | null = null;
 let leaderboards: any;
 let passObj: passInit | null = null;
@@ -74,14 +83,14 @@ const nfts = {
   conetian: {
     id: 0,
     name: "conetian",
-    contractAddress: nftContract,
+    contractAddress: CONETianPlanAddr_cancun,
     contractAbi: conetianPlanAbi,
     maximumSupply: 30000,
   },
   conetianReferrer: {
     id: 10,
     name: "conetianReferrer",
-    contractAddress: nftContract,
+    contractAddress: CONETianPlanAddr_cancun,
     contractAbi: conetianPlanAbi,
   },
 };
@@ -107,7 +116,7 @@ const getTodayAsset = async () => {
     return null;
   }
 
-  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const CNTP_Referrals = new ethers.Contract(
     dailyCheckInContractAddress,
     dailyCheckInAbi,
@@ -142,7 +151,7 @@ const getProfileCurrentWeek = async (keyID) => {
     return null;
   }
 
-  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const dailyCheckInContract = new ethers.Contract(
     dailyCheckInContractAddress,
     dailyCheckInAbi,
@@ -227,9 +236,9 @@ const getAllReferrer = async () => {
     return null;
   }
 
-  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const CNTP_Referrals = new ethers.Contract(
-    ReferralsAddressV3,
+    ReferralsAddress_cancun,
     CONET_ReferralsAbi,
     provideNewCONET
   );
@@ -305,21 +314,22 @@ const listenProfileVer = async () => {
       }
 
       const runningList: any[] = [];
+
       for (let profile of profiles) {
         runningList.push(getProfileAssets_CONET_Balance(profile));
       }
 
-      runningList.push(getAllProfileTicketsBalance());
+      // runningList.push(getAllProfileTicketsBalance());
       runningList.push(getAllReferrer());
-      runningList.push(getAllGameProfileInfo());
-      runningList.push(getAllProfilesCurrentWeek());
+      // runningList.push(getAllGameProfileInfo());
+      // runningList.push(getAllProfilesCurrentWeek());
       runningList.push(getassetOracle());
 
       await Promise.all(runningList);
 
-      const dailyClaimInfo = await getDailyClaimInfo();
+      // const dailyClaimInfo = await getDailyClaimInfo();
 
-      leaderboards = await getLeaderboards();
+      // leaderboards = await getLeaderboards();
 
       const isTicketUnlocked = await isApprovedForAll(
         profiles[0].privateKeyArmor
@@ -329,7 +339,7 @@ const listenProfileVer = async () => {
 
       const cmd: channelWroker = {
         cmd: "profileVer",
-        data: [profiles[0], leaderboards || null, dailyClaimInfo, assetOracle],
+        data: [profiles[0], null, null, assetOracle],
       };
 
       sendState("toFrontEnd", cmd);
@@ -357,7 +367,7 @@ const getDailyClaimInfo = async () => {
 
     const todayAsset = await getTodayAsset();
 
-    if (todayAsset[0].toLowerCase() === cCNTP_new_Addr.toLowerCase())
+    if (todayAsset[0].toLowerCase() === cCNTP_cancun_Addr.toLowerCase())
       assetName = "cntp";
     else if (todayAsset[0].toLowerCase() === ticket_addr.toLowerCase())
       assetName = "ticket";
@@ -881,7 +891,7 @@ const getAllProfileTicketsBalance = () =>
   });
 
 const getProfileTicketsBalance = async (profile: profile) => {
-  const provide = new ethers.JsonRpcProvider(conet_rpc);
+  const provide = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const wallet = new ethers.Wallet(profile.privateKeyArmor, provide);
   const ticketSmartContract = new ethers.Contract(
     ticket_addr,
@@ -898,47 +908,29 @@ const getProfileTicketsBalance = async (profile: profile) => {
   }
 };
 
-const getFaucet = async (keyId, privateKey: string) => {
-  if (CoNET_Data?.profiles[0].tokens.conet.balance === "0") {
-    if (++getFaucetRoop > 6) {
-      getFaucetRoop = 0;
-      logger(`getFaucet Roop > 6 STOP process!`);
-      return null;
+const getFaucet: (profile: profile) => Promise<boolean | any> = async (
+  profile
+) =>
+  new Promise(async (resolve) => {
+    const conet = profile?.tokens?.conet;
+
+    const health = await getCONET_api_health();
+    if (!health) {
+      return resolve(false);
     }
+
     const url = `${apiv4_endpoint}conet-faucet`;
     let result;
     try {
-      result = await postToEndpoint(url, true, { walletAddr: keyId });
+      result = await postToEndpoint(url, true, { walletAddr: profile.keyID });
     } catch (ex) {
       logger(`getFaucet postToEndpoint [${url}] error! `, ex);
-      return null;
+      return resolve(false);
     }
-    getFaucetRoop = 0;
-
-    if (result) {
-      return true;
-    }
-
-    return null;
-  } else {
-    const provide = new ethers.JsonRpcProvider(conet_rpc);
-    const wallet = new ethers.Wallet(privateKey, provide);
-    const faucetSmartContract = new ethers.Contract(
-      faucet_addr,
-      faucetAbi,
-      wallet
-    );
-
-    try {
-      const tx = await faucetSmartContract.getFaucet();
-      console.log(`success hash = ${tx.hash}`);
-      return true;
-    } catch (ex) {
-      console.log(ex);
-      return null;
-    }
-  }
-};
+    setTimeout(() => {
+      return resolve(true);
+    }, 1000);
+  });
 
 const checkTokenStructure = (token: any) => {
   if (!token?.cCNTP) {
@@ -947,7 +939,7 @@ const checkTokenStructure = (token: any) => {
       history: [],
       network: "CONET Holesky",
       decimal: 18,
-      contract: cCNTP_new_Addr,
+      contract: cCNTP_cancun_Addr,
       name: "cCNTP",
     };
   } else {
@@ -988,7 +980,7 @@ const getProfileAssets_CONET_Balance = async (profile: profile) => {
     const current = profile.tokens;
     checkTokenStructure(current);
 
-    const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
+    const provideCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
 
     if (!provideBNB) {
       provideBNB = new ethers.JsonRpcProvider(bsc_mainchain);
@@ -1116,7 +1108,7 @@ const scanCONETHolesky = async (walletAddr: string, providerCONET: any) => {
 };
 
 const scanCCNTP = async (walletAddr: string, provider: any) => {
-  return await scan_erc20_balance(walletAddr, provider, cCNTP_new_Addr);
+  return await scan_erc20_balance(walletAddr, provider, cCNTP_cancun_Addr);
 };
 
 const scanBNB = async (walletAddr) => {
@@ -1500,10 +1492,7 @@ const createOrGetWallet = async () => {
     }
   });
 
-  await getFaucet(
-    CoNET_Data.profiles[0].keyID,
-    CoNET_Data.profiles[0].privateKeyArmor
-  );
+  await getFaucet(CoNET_Data.profiles[0]);
 
   await getAllReferrer();
 
@@ -1569,10 +1558,7 @@ const importWallet = async (cmd: worker_command) => {
 
   CoNET_Data.profiles = [profile];
 
-  await getFaucet(
-    CoNET_Data.profiles[0].keyID,
-    CoNET_Data.profiles[0].privateKeyArmor
-  );
+  await getFaucet(CoNET_Data.profiles[0]);
 
   CoNET_Data.profiles.forEach(async (n) => {
     n.keyID = n.keyID.toLocaleLowerCase();
@@ -1622,7 +1608,7 @@ const initProfileTokens = () => {
       history: [],
       network: "CONET Holesky",
       decimal: 18,
-      contract: cCNTP_new_Addr,
+      contract: cCNTP_cancun_Addr,
       name: "cCNTP",
     },
     cBNBUSDT: {
@@ -1778,7 +1764,7 @@ const checkSocialMedias = async (cmd: worker_command) => {
     cmd.data[0] = "Profile not found in CoNET_Data";
     return returnUUIDChannel(cmd);
   }
-  const providerConet = new ethers.JsonRpcProvider(conet_rpc);
+  const providerConet = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const signer = new ethers.Wallet(_profile.privateKeyArmor, providerConet);
   const tokenContract = new ethers.Contract(
     socialMediaAddress,
@@ -2070,7 +2056,7 @@ const _startMiningV1 = async (
         const newBalance = await scan_erc20_balance(
           CoNET_Data.profiles[0].keyID,
           provideCONET,
-          cCNTP_new_Addr
+          cCNTP_cancun_Addr
         );
         CoNET_Data.profiles[0].tokens.cCNTP.balance = newBalance;
         profile = CoNET_Data.profiles[0];
@@ -2126,7 +2112,7 @@ const startMiningV1 = async (cmd: worker_command) => {
   const newBalance = await scan_erc20_balance(
     _profile.keyID,
     provideCONET,
-    cCNTP_new_Addr
+    cCNTP_cancun_Addr
   );
   CoNET_Data.profiles[0].tokens.cCNTP.balance = newBalance;
   _profile = CoNET_Data.profiles[0];
@@ -2167,7 +2153,7 @@ const startMiningV2 = async (cmd: worker_command) => {
   const newBalance = await scan_erc20_balance(
     _profile.keyID,
     provideCONET,
-    cCNTP_new_Addr
+    cCNTP_cancun_Addr
   );
   CoNET_Data.profiles[0].tokens.cCNTP.balance = newBalance;
   _profile = CoNET_Data.profiles[0];
@@ -2257,7 +2243,7 @@ const getRouletteResult = async (cmd: worker_command) => {
     return returnUUIDChannel(cmd);
   }
 
-  await getFaucet(_profile.keyID, _profile.privateKeyArmor);
+  await getFaucet(_profile);
 
   let rouletteResult = null;
 
@@ -2335,7 +2321,7 @@ const _unlockTicket = async (_profile: profile) => {
 
 const setApprovalForAll = async (privateKey: string) => {
   const CONET_manager_Wallet = "0x068759bCfd929fb17258aF372c30eE6CD277B872";
-  const rpcProvider = new ethers.JsonRpcProvider(conet_rpc);
+  const rpcProvider = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const wallet = new ethers.Wallet(privateKey, rpcProvider);
   const ticketContract = new ethers.Contract(ticket_addr, ticketAbi, wallet);
 
@@ -2359,7 +2345,7 @@ const setApprovalForAll = async (privateKey: string) => {
 
 const isApprovedForAll = async (privateKey: string) => {
   const CONET_manager_Wallet = "0x068759bcfd929fb17258af372c30ee6cd277b872";
-  const rpcProvider = new ethers.JsonRpcProvider(conet_rpc);
+  const rpcProvider = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const wallet = new ethers.Wallet(privateKey, rpcProvider);
   const ticketContract = new ethers.Contract(ticket_addr, ticketAbi, wallet);
 
@@ -2402,10 +2388,10 @@ const registerReferrer = async (cmd: worker_command) => {
     return returnUUIDChannel(cmd);
   }
 
-  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const wallet = new ethers.Wallet(profile.privateKeyArmor, provideNewCONET);
   const CNTP_Referrals = new ethers.Contract(
-    ReferralsAddressV3,
+    ReferralsAddress_cancun,
     CONET_ReferralsAbi,
     wallet
   );
@@ -2564,7 +2550,7 @@ const saveGameProfileInfo = async (cmd: worker_command) => {
     return returnUUIDChannel(cmd);
   }
 
-  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const wallet = new ethers.Wallet(_profile.privateKeyArmor, provideNewCONET);
   const profileContract = new ethers.Contract(
     profileContractAddress,
@@ -2610,7 +2596,7 @@ const getGameProfileInfo = async (
     return null;
   }
 
-  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
   const wallet = new ethers.Wallet(_profile.privateKeyArmor, provideNewCONET);
   const profileContract = new ethers.Contract(
     profileContractAddress,
@@ -2788,7 +2774,7 @@ const getNativeBalance = async (cmd: worker_command) => {
     return returnUUIDChannel(cmd);
   }
 
-  const provideCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const provideCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
 
   cmd.data[0] = await scanCONETHolesky(sourceProfileKeyID, provideCONET);
 
@@ -2949,10 +2935,10 @@ const isWalletAgent = async (cmd) => {
     return returnUUIDChannel(cmd);
   }
 
-  const provideNewCONET = new ethers.JsonRpcProvider(conet_rpc);
+  const provideNewCONET = new ethers.JsonRpcProvider(conet_cancun_rpc);
 
   const ConetianContract = new ethers.Contract(
-    nftContract,
+    CONETianPlanAddr_cancun,
     conetianPlanAbi,
     provideNewCONET
   );
