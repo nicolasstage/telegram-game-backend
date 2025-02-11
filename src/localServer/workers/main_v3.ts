@@ -1544,10 +1544,7 @@ const createWallet = async (cmd: worker_command) => {
     }
   });
 
-  await getFaucet(
-    CoNET_Data.profiles[0].keyID,
-    CoNET_Data.profiles[0].privateKeyArmor
-  );
+  await getFaucet(CoNET_Data.profiles[0]);
 
   await getAllReferrer();
 
